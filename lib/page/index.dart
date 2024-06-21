@@ -161,7 +161,36 @@ class HomePageState extends State<HomePage> {
                               ),
                             ),
                             IconButton(
-                              onPressed: () async {},
+                              onPressed: () async {
+                                showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        content: const Text('Delete Data ?'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text('Batal'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () async {
+                                              await FirebaseFirestore.instance
+                                                  .collection('perkara')
+                                                  .doc(lists[i].id)
+                                                  .delete();
+                                              fetch();
+                                              if (context.mounted) {
+                                                Navigator.pop(context);
+                                              }
+                                            },
+                                            child: const Text('Delete'),
+                                          ),
+                                        ],
+                                      );
+                                    });
+                              },
                               icon: const Icon(
                                 Icons.delete_forever,
                                 color: Colors.pink,
@@ -199,7 +228,7 @@ class HomePageState extends State<HomePage> {
                                         fetch();
                                       });
                                     },
-                                    child: const Text('Inkrah'),
+                                    child: const Text('Putusan'),
                                   ),
                                 ];
                               },
