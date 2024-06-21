@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:touna/model/perkara_model.dart';
 import 'package:touna/page/detail_perkara.dart';
+import 'package:touna/page/edit_perkara.dart';
 import 'package:touna/page/jadwal_sidang.dart';
 import 'package:touna/util/date.dart';
 
@@ -17,7 +18,7 @@ class HomePage extends StatefulWidget {
 
 class HomePageState extends State<HomePage> {
   final ref =
-      FirebaseFirestore.instance.collection('perkara').orderBy('noPerkara');
+      FirebaseFirestore.instance.collection('perkara').orderBy('inkrah');
 
   List<QueryDocumentSnapshot> lists = [];
   bool detail = false;
@@ -98,9 +99,9 @@ class HomePageState extends State<HomePage> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        title: SelectableText(
-                          data.noPerkara,
-                          textAlign: TextAlign.end,
+                        title: formatText(
+                          '${data.noPerkara}\n${data.terdakwa}',
+                          align: TextAlign.end,
                           style: const TextStyle(
                               fontSize: 16, fontWeight: FontWeight.bold),
                         ),
@@ -172,6 +173,24 @@ class HomePageState extends State<HomePage> {
                                   PopupMenuItem(
                                     onTap: () {
                                       Future.delayed(Duration.zero, () async {
+                                        showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              return EditPerkara(
+                                                  perkara: lists[i]);
+                                            }).then((v) => fetch());
+                                        // Navigator.push(context,
+                                        //     MaterialPageRoute(
+                                        //         builder: (context) {
+                                        //   return EditPerkara(perkara: lists[i]);
+                                        // })).then((v) => fetch());
+                                      });
+                                    },
+                                    child: const Text('Edit'),
+                                  ),
+                                  PopupMenuItem(
+                                    onTap: () {
+                                      Future.delayed(Duration.zero, () async {
                                         bool inkrah = data.inkrah ?? false;
                                         await FirebaseFirestore.instance
                                             .collection('perkara')
@@ -240,10 +259,17 @@ class HomePageState extends State<HomePage> {
                                                                       dynamic>)[
                                                               'date'])
                                                           .fullday),
-                                                      Text((value.data()!
-                                                              as Map<String,
-                                                                  dynamic>)[
-                                                          'agenda']),
+                                                      Text(
+                                                        (value.data()! as Map<
+                                                            String,
+                                                            dynamic>)['agenda'],
+                                                        style: key != 0
+                                                            ? null
+                                                            : const TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                      ),
                                                     ],
                                                   ),
                                                 ],
@@ -266,8 +292,9 @@ class HomePageState extends State<HomePage> {
     );
   }
 
-  Widget formatText(String txt) {
-    return SelectableText(txt.replaceAll(';', '\n\n'));
+  Widget formatText(String txt, {TextAlign? align, TextStyle? style}) {
+    return SelectableText(txt.replaceAll(';', '\n'),
+        textAlign: align, style: style);
   }
 }
 
@@ -392,7 +419,6 @@ class AddPerkaraState extends State<AddPerkara> {
               panitera: _panitera.text,
               noPerkara: _noPerkara.text,
             );
-            // await TounaDB.addPerkara(pkr);
             await FirebaseAuth.instance.signInAnonymously();
             final ref = FirebaseFirestore.instance.collection('perkara');
             await ref.add(pkr.toMap());
