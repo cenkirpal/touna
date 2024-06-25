@@ -72,34 +72,36 @@ class JadwalSidangState extends State<JadwalSidang> {
     noT.cellStyle = borderStyle;
     var terdakwaT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: 0 + 5));
-    terdakwaT.value = const exc.TextCellValue('Nama Terdakwa yang dipanggil');
+    terdakwaT.value = const exc.TextCellValue('Nama Terdakwa');
     terdakwaT.cellStyle = borderStyle;
     var lapasT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 0 + 5));
-    lapasT.value = const exc.TextCellValue('Alamat');
+    lapasT.value = const exc.TextCellValue('Agenda');
     lapasT.cellStyle = borderStyle;
     var pasalT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: 0 + 5));
-    pasalT.value = const exc.TextCellValue('Keterangan / Pasal');
+    pasalT.value = const exc.TextCellValue('JPU');
     pasalT.cellStyle = borderStyle;
 
     for (var i = 0; i < lists.length; i++) {
       var no = sheet.cell(
           exc.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: i + 6));
-      no.value = exc.TextCellValue('${i + 1}');
+      no.value = exc.TextCellValue('${i + 1}.');
       no.cellStyle = borderStyle;
       var terdakwa = sheet.cell(
           exc.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: i + 6));
-      // terdakwa.value = exc.TextCellValue(lists[i]['terdakwa']);
+      terdakwa.value =
+          exc.TextCellValue(lists[i].perkara!.terdakwa.replaceAll(';', '\n'));
       terdakwa.cellStyle = borderStyle;
 
       var lok = sheet.cell(
           exc.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: i + 6));
-      lok.value = const exc.TextCellValue('Lapas Ampana');
+      lok.value = exc.TextCellValue(lists[i].agenda);
       lok.cellStyle = borderStyle;
       var pasal = sheet.cell(
           exc.CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: i + 6));
-      // pasal.value = exc.TextCellValue(lists[i]['pasal']);
+      pasal.value =
+          exc.TextCellValue(lists[i].perkara!.jpu.replaceAll(';', '\n'));
       pasal.cellStyle = borderStyle;
     }
 
