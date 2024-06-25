@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:touna/api/api.dart';
+import 'package:touna/main.dart';
 import 'package:touna/model/perkara_model.dart';
 import 'package:touna/page/detail_perkara.dart';
 import 'package:touna/page/edit_perkara.dart';
@@ -17,10 +19,9 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
-  final ref =
-      FirebaseFirestore.instance.collection('perkara').orderBy('inkrah');
-
-  List<QueryDocumentSnapshot> lists = [];
+  AppState appState = AppState.done;
+  final _keyword = TextEditingController();
+  List<PerkaraModel> lists = [];
   bool detail = false;
 
   @override
@@ -29,13 +30,17 @@ class HomePageState extends State<HomePage> {
     fetch();
   }
 
-  fetch() async {
-    await FirebaseAuth.instance.signInAnonymously();
-    setState(() => lists = []);
-    var d = await ref.get();
-    lists = d.docs;
+  fetch({String? keyword}) async {
+    setState(() {
+      appState = AppState.loading;
+      lists = [];
+    });
+    var d = await ApiTouna.getPerkara(keyword: keyword);
 
-    setState(() => lists = d.docs);
+    setState(() {
+      lists = d;
+      appState = AppState.done;
+    });
   }
 
   insert() async {
@@ -55,6 +60,30 @@ class HomePageState extends State<HomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
         actions: [
+          Container(
+            width: 200,
+            margin: const EdgeInsets.symmetric(vertical: 4),
+            child: TextFormField(
+              controller: _keyword,
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  onPressed: () {
+                    _keyword.clear();
+                    fetch();
+                  },
+                  iconSize: 20,
+                  color: Colors.pink,
+                  icon: const Icon(Icons.close),
+                ),
+              ),
+              onFieldSubmitted: (value) {
+                if (_keyword.text.isNotEmpty) {
+                  fetch(keyword: _keyword.text);
+                }
+              },
+            ),
+          ),
           IconButton(
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -72,252 +101,317 @@ class HomePageState extends State<HomePage> {
           IconButton(onPressed: () => fetch(), icon: const Icon(Icons.refresh))
         ],
       ),
-      body: lists.isEmpty
-          ? const Center(child: Text('No Data'))
-          : ListView.builder(
-              itemCount: lists.length,
-              itemBuilder: (context, i) {
-                var data = PerkaraModel.fromJson(
-                    lists[i].data() as Map<String, dynamic>);
-                return Card(
-                  elevation: 6,
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide(color: Colors.green[400]!, width: 1),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  shadowColor: Colors.pink,
-                  surfaceTintColor: Colors.pink,
-                  child: Column(
-                    children: [
-                      ListTile(
-                        tileColor:
-                            data.inkrah == true ? Colors.blue[300] : null,
-                        leading: Text(
-                          '${i + 1}',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        title: formatText(
-                          '${data.noPerkara}\n${data.terdakwa}',
-                          align: TextAlign.end,
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: !detail
-                            ? Container()
-                            : Container(
-                                alignment: Alignment.centerLeft,
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        width: 200,
-                                        padding: const EdgeInsets.all(8),
-                                        child: formatText(data.terdakwa),
-                                      ),
-                                      Container(
-                                        width: 200,
-                                        padding: const EdgeInsets.all(8),
-                                        child: Text(data.pasal),
-                                      ),
-                                      Container(
-                                        width: 200,
-                                        padding: const EdgeInsets.all(8),
-                                        child: formatText(data.jpu),
-                                      ),
-                                      Container(
-                                        width: 200,
-                                        padding: const EdgeInsets.all(8),
-                                        child: Text(data.majelis),
-                                      ),
-                                      Container(
-                                        width: 200,
-                                        padding: const EdgeInsets.all(8),
-                                        child: Text(data.panitera),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              onPressed: () async {
-                                await Navigator.push(context,
-                                    MaterialPageRoute(builder: (context) {
-                                  return DetailPerkara(perkara: lists[i]);
-                                }));
-                                fetch();
-                              },
-                              icon: const Icon(
-                                Icons.remove_red_eye,
-                                color: Colors.blue,
+      body: appState == AppState.loading
+          ? const Center(
+              child: SizedBox(
+              width: 200,
+              child: LinearProgressIndicator(),
+            ))
+          : lists.isEmpty
+              ? const Center(child: Text('No Data'))
+              : ListView.builder(
+                  itemCount: lists.length,
+                  itemBuilder: (context, i) {
+                    var data = lists[i];
+                    return Card(
+                      elevation: 6,
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(color: Colors.green[400]!, width: 1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      shadowColor: Colors.pink,
+                      surfaceTintColor: Colors.pink,
+                      child: Column(
+                        children: [
+                          ListTile(
+                            tileColor:
+                                data.putusan == true ? Colors.blue[300] : null,
+                            leading: Text(
+                              '${i + 1}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            IconButton(
-                              onPressed: () async {
-                                showDialog(
-                                    context: context,
-                                    builder: (context) {
-                                      return AlertDialog(
-                                        content: const Text('Delete Data ?'),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                            child: const Text('Batal'),
+                            title: formatText(
+                              '${data.noPerkara}\n${data.terdakwa}',
+                              align: TextAlign.end,
+                              style: const TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: !detail
+                                ? Container()
+                                : Container(
+                                    alignment: Alignment.centerLeft,
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            width: 200,
+                                            padding: const EdgeInsets.all(8),
+                                            child: formatText(data.terdakwa),
                                           ),
-                                          TextButton(
-                                            onPressed: () async {
-                                              await FirebaseFirestore.instance
-                                                  .collection('perkara')
-                                                  .doc(lists[i].id)
-                                                  .delete();
-                                              fetch();
-                                              if (context.mounted) {
-                                                Navigator.pop(context);
-                                              }
-                                            },
-                                            child: const Text('Delete'),
+                                          Container(
+                                            width: 200,
+                                            padding: const EdgeInsets.all(8),
+                                            child: Text(data.pasal),
+                                          ),
+                                          Container(
+                                            width: 200,
+                                            padding: const EdgeInsets.all(8),
+                                            child: formatText(data.jpu),
+                                          ),
+                                          Container(
+                                            width: 200,
+                                            padding: const EdgeInsets.all(8),
+                                            child: Text(data.majelis),
+                                          ),
+                                          Container(
+                                            width: 200,
+                                            padding: const EdgeInsets.all(8),
+                                            child: Text(data.panitera),
                                           ),
                                         ],
-                                      );
-                                    });
-                              },
-                              icon: const Icon(
-                                Icons.delete_forever,
-                                color: Colors.pink,
-                              ),
-                            ),
-                            PopupMenuButton(
-                              itemBuilder: (context) {
-                                return [
-                                  PopupMenuItem(
-                                    onTap: () {
-                                      Future.delayed(Duration.zero, () async {
-                                        showDialog(
-                                            context: context,
-                                            builder: (context) {
-                                              return EditPerkara(
-                                                  perkara: lists[i]);
-                                            }).then((v) => fetch());
-                                        // Navigator.push(context,
-                                        //     MaterialPageRoute(
-                                        //         builder: (context) {
-                                        //   return EditPerkara(perkara: lists[i]);
-                                        // })).then((v) => fetch());
-                                      });
-                                    },
-                                    child: const Text('Edit'),
+                                      ),
+                                    ),
                                   ),
-                                  PopupMenuItem(
-                                    onTap: () {
-                                      Future.delayed(Duration.zero, () async {
-                                        bool inkrah = data.inkrah ?? false;
-                                        await FirebaseFirestore.instance
-                                            .collection('perkara')
-                                            .doc(lists[i].id)
-                                            .update({'inkrah': !inkrah});
-                                        fetch();
-                                      });
-                                    },
-                                    child: const Text('Putusan'),
-                                  ),
-                                ];
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      StreamBuilder<QuerySnapshot>(
-                          stream: FirebaseFirestore.instance
-                              .collection('perkara')
-                              .doc(lists[i].id)
-                              .collection('sidang')
-                              .orderBy('date', descending: true)
-                              .snapshots(),
-                          builder: (context, snap) {
-                            if (!snap.hasData) {
-                              return Container();
-                            }
-                            if (snap.data!.docs.isNotEmpty) {
-                              return Container(
-                                decoration: BoxDecoration(
-                                    color: Colors.green.shade400,
-                                    borderRadius: const BorderRadius.only(
-                                      bottomLeft: Radius.circular(8),
-                                      bottomRight: Radius.circular(8),
-                                    )),
-                                child: SingleChildScrollView(
-                                  child: Row(
-                                    children: snap.data!.docs
-                                        .asMap()
-                                        .map((key, value) => MapEntry(
-                                            key,
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.fromLTRB(
-                                                      4, 4, 18, 4),
-                                              child: Row(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    '${key + 1}',
-                                                    style: const TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.bold),
-                                                  ),
-                                                  Container(width: 12),
-                                                  Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(DateTime.parse((value
-                                                                      .data()!
-                                                                  as Map<String,
-                                                                      dynamic>)[
-                                                              'date'])
-                                                          .fullday),
-                                                      Text(
-                                                        (value.data()! as Map<
-                                                            String,
-                                                            dynamic>)['agenda'],
-                                                        style: key != 0
-                                                            ? null
-                                                            : const TextStyle(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                            )))
-                                        .values
-                                        .toList(),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  onPressed: () async {
+                                    await Navigator.push(context,
+                                        MaterialPageRoute(builder: (context) {
+                                      return DetailPerkara(perkara: lists[i]);
+                                    }));
+                                    fetch();
+                                  },
+                                  icon: const Icon(
+                                    Icons.remove_red_eye,
+                                    color: Colors.blue,
                                   ),
                                 ),
-                              );
-                            }
-                            return Container();
-                          }),
-                      if (i == lists.length - 1) Container(height: 40),
-                    ],
-                  ),
-                );
-              },
-            ),
+                                IconButton(
+                                  onPressed: () async {
+                                    showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return AlertDialog(
+                                            content:
+                                                const Text('Delete Data ?'),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                },
+                                                child: const Text('Batal'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () async {
+                                                  await ApiTouna.deletePerkara(
+                                                      lists[i].id!);
+                                                  fetch();
+                                                  if (context.mounted) {
+                                                    Navigator.pop(context);
+                                                  }
+                                                },
+                                                child: const Text('Delete'),
+                                              ),
+                                            ],
+                                          );
+                                        });
+                                  },
+                                  icon: const Icon(
+                                    Icons.delete_forever,
+                                    color: Colors.pink,
+                                  ),
+                                ),
+                                PopupMenuButton(
+                                  itemBuilder: (context) {
+                                    return [
+                                      PopupMenuItem(
+                                        onTap: () {
+                                          Future.delayed(Duration.zero,
+                                              () async {
+                                            showDialog(
+                                                context: context,
+                                                builder: (context) {
+                                                  return EditPerkara(
+                                                      perkara: lists[i]);
+                                                }).then((v) => fetch());
+                                          });
+                                        },
+                                        child: const Text('Edit'),
+                                      ),
+                                      PopupMenuItem(
+                                        onTap: () {
+                                          // Future.delayed(Duration.zero, () async {
+                                          //   bool inkrah = data.inkrah ?? false;
+                                          //   await FirebaseFirestore.instance
+                                          //       .collection('perkara')
+                                          //       .doc(lists[i].id)
+                                          //       .update({'inkrah': !inkrah});
+                                          //   fetch();
+                                          // });
+                                        },
+                                        child: const Text('Putusan'),
+                                      ),
+                                    ];
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                          ////
+                          ///
+                          ///
+                          if (data.sidang != null)
+                            Container(
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                  color: Colors.green.shade400,
+                                  borderRadius: const BorderRadius.only(
+                                    bottomLeft: Radius.circular(8),
+                                    bottomRight: Radius.circular(8),
+                                  )),
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: data.sidang!
+                                      .asMap()
+                                      .map((key, value) => MapEntry(
+                                          key,
+                                          Container(
+                                            padding: const EdgeInsets.fromLTRB(
+                                                4, 4, 18, 4),
+                                            child: Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  '${key + 1}',
+                                                  style: const TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                                Container(width: 12),
+                                                Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(DateTime.parse(
+                                                            value.date)
+                                                        .fullday),
+                                                    Text(
+                                                      value.agenda,
+                                                      style: key != 0
+                                                          ? null
+                                                          : const TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          )))
+                                      .values
+                                      .toList(),
+                                ),
+                              ),
+                            ),
+
+                          ///
+                          ///
+                          // StreamBuilder<QuerySnapshot>(
+                          //     stream: FirebaseFirestore.instance
+                          //         .collection('perkara')
+                          //         .doc(lists[i].id!)
+                          //         .collection('sidang')
+                          //         .orderBy('date', descending: true)
+                          //         .snapshots(),
+                          //     builder: (context, snap) {
+                          //       if (!snap.hasData) {
+                          //         return Container();
+                          //       }
+                          //       if (snap.data!.docs.isNotEmpty) {
+                          //         return Container(
+                          //           width: double.infinity,
+                          //           decoration: BoxDecoration(
+                          //               color: Colors.green.shade400,
+                          //               borderRadius: const BorderRadius.only(
+                          //                 bottomLeft: Radius.circular(8),
+                          //                 bottomRight: Radius.circular(8),
+                          //               )),
+                          //           child: SingleChildScrollView(
+                          //             scrollDirection: Axis.horizontal,
+                          //             child: Row(
+                          //               children: snap.data!.docs
+                          //                   .asMap()
+                          //                   .map((key, value) => MapEntry(
+                          //                       key,
+                          //                       Container(
+                          //                         padding:
+                          //                             const EdgeInsets.fromLTRB(
+                          //                                 4, 4, 18, 4),
+                          //                         child: Row(
+                          //                           crossAxisAlignment:
+                          //                               CrossAxisAlignment.start,
+                          //                           children: [
+                          //                             Text(
+                          //                               '${key + 1}',
+                          //                               style: const TextStyle(
+                          //                                   fontSize: 16,
+                          //                                   fontWeight:
+                          //                                       FontWeight.bold),
+                          //                             ),
+                          //                             Container(width: 12),
+                          //                             Column(
+                          //                               crossAxisAlignment:
+                          //                                   CrossAxisAlignment
+                          //                                       .start,
+                          //                               children: [
+                          //                                 Text(DateTime.parse((value
+                          //                                                 .data()!
+                          //                                             as Map<String,
+                          //                                                 dynamic>)[
+                          //                                         'date'])
+                          //                                     .fullday),
+                          //                                 Text(
+                          //                                   (value.data()! as Map<
+                          //                                       String,
+                          //                                       dynamic>)['agenda'],
+                          //                                   style: key != 0
+                          //                                       ? null
+                          //                                       : const TextStyle(
+                          //                                           fontWeight:
+                          //                                               FontWeight
+                          //                                                   .bold),
+                          //                                 ),
+                          //                               ],
+                          //                             ),
+                          //                           ],
+                          //                         ),
+                          //                       )))
+                          //                   .values
+                          //                   .toList(),
+                          //             ),
+                          //           ),
+                          //         );
+                          //       }
+                          //       return Container();
+                          //     }),
+                          if (i == lists.length - 1) Container(height: 40),
+                        ],
+                      ),
+                    );
+                  },
+                ),
     );
   }
 
@@ -447,6 +541,7 @@ class AddPerkaraState extends State<AddPerkara> {
               majelis: _majelis.text,
               panitera: _panitera.text,
               noPerkara: _noPerkara.text,
+              putusan: false,
             );
             await FirebaseAuth.instance.signInAnonymously();
             final ref = FirebaseFirestore.instance.collection('perkara');

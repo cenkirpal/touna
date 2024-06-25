@@ -1,11 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:touna/api/api.dart';
 import 'package:touna/model/perkara_model.dart';
 
 class EditPerkara extends StatefulWidget {
   const EditPerkara({super.key, required this.perkara});
-  final QueryDocumentSnapshot perkara;
+  final PerkaraModel perkara;
   @override
   EditPerkaraState createState() => EditPerkaraState();
 }
@@ -26,8 +25,7 @@ class EditPerkaraState extends State<EditPerkara> {
   }
 
   init() {
-    var pkr =
-        PerkaraModel.fromJson(widget.perkara.data() as Map<String, dynamic>);
+    var pkr = widget.perkara;
 
     _noPerkara.text = pkr.noPerkara;
     _terdakwa.text = pkr.terdakwa;
@@ -137,19 +135,17 @@ class EditPerkaraState extends State<EditPerkara> {
           onPressed: () async {
             if (!_form.currentState!.validate()) return;
             var pkr = PerkaraModel(
+              id: widget.perkara.id,
               terdakwa: _terdakwa.text,
               pasal: _pasal.text,
               jpu: _jpu.text,
               majelis: _majelis.text,
               panitera: _panitera.text,
               noPerkara: _noPerkara.text,
+              putusan: widget.perkara.putusan,
             );
-            await FirebaseAuth.instance.signInAnonymously();
 
-            await FirebaseFirestore.instance
-                .collection('perkara')
-                .doc(widget.perkara.id)
-                .update(pkr.toMap());
+            await ApiTouna.editPerkara(widget.perkara.id!, pkr);
             if (context.mounted) Navigator.pop(context);
           },
           child: const Text('Simpan'),

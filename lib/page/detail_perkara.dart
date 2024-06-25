@@ -1,36 +1,39 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:touna/api/api.dart';
+import 'package:touna/main.dart';
 import 'package:touna/model/perkara_model.dart';
 import 'package:touna/model/sidang_model.dart';
 import 'package:touna/util/date.dart';
 
 class DetailPerkara extends StatefulWidget {
   const DetailPerkara({super.key, required this.perkara});
-  final QueryDocumentSnapshot perkara;
+  final PerkaraModel perkara;
   @override
   DetailPerkaraState createState() => DetailPerkaraState();
 }
 
 class DetailPerkaraState extends State<DetailPerkara> {
   late PerkaraModel perkara;
-  List<QueryDocumentSnapshot>? listSidang = [];
+  AppState appState = AppState.done;
+  List<SidangModel>? listSidang = [];
   @override
   void initState() {
-    perkara =
-        PerkaraModel.fromJson((widget.perkara.data()) as Map<String, dynamic>);
+    perkara = widget.perkara;
     reload();
     super.initState();
   }
 
   reload() async {
-    setState(() => listSidang = []);
-    final ref = await FirebaseFirestore.instance
-        .collection('perkara')
-        .doc(widget.perkara.id)
-        .collection('sidang')
-        .orderBy('date')
-        .get();
-    setState(() => listSidang = ref.docs);
+    setState(() {
+      appState = AppState.loading;
+      listSidang = [];
+    });
+    var data = await ApiTouna.getSidang(widget.perkara.id!);
+
+    setState(() {
+      appState = AppState.done;
+      listSidang = data.reversed.toList();
+    });
   }
 
   @override
@@ -61,84 +64,75 @@ class DetailPerkaraState extends State<DetailPerkara> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 200),
-                  child: Column(
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(
-                            width: 150,
-                            child: Text('Nama Terdakwa : '),
-                          ),
-                          Text(perkara.terdakwa),
-                        ],
-                      ),
-                      const Divider(),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(
-                            width: 150,
-                            child: Text('JPU : '),
-                          ),
-                          Text(perkara.jpu.replaceAll(';', '\n')),
-                        ],
-                      ),
-                    ],
-                  )),
-              Container(height: 75),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Terdakwa : '),
+                  const Divider(),
+                  Text(
+                    perkara.terdakwa.replaceAll(';', '\n'),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Container(height: 25),
+                  const Text('JPU : '),
+                  const Divider(),
+                  Text(
+                    perkara.jpu.replaceAll(';', '\n'),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              Container(height: 25),
               listSidang == null
                   ? Container()
-                  : listSidang!.isEmpty
-                      ? Container()
-                      : ListView.builder(
-                          itemCount: listSidang!.length,
-                          shrinkWrap: true,
-                          itemBuilder: (context, i) {
-                            var sidang = SidangModel.fromJson(
-                                listSidang![i].data()! as Map<String, dynamic>);
-                            return ListTile(
-                              leading: Text('${i + 1}'),
-                              title: Text(DateTime.parse(sidang.date).fullday),
-                              subtitle: Text(sidang.agenda),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    onPressed: () async {
-                                      await showDialog(
-                                          context: context,
-                                          builder: (context) {
-                                            return EditSidang(
-                                              perkara: widget.perkara,
-                                              sidang: listSidang![i],
-                                            );
-                                          });
-                                      reload();
-                                    },
-                                    icon: const Icon(Icons.edit),
+                  : appState == AppState.loading
+                      ? const Center(child: LinearProgressIndicator())
+                      : listSidang!.isEmpty
+                          ? Container()
+                          : ListView.builder(
+                              itemCount: listSidang!.length,
+                              shrinkWrap: true,
+                              itemBuilder: (context, i) {
+                                var sidang = listSidang![i];
+                                return ListTile(
+                                  leading: Text('${i + 1}'),
+                                  title:
+                                      Text(DateTime.parse(sidang.date).fullday),
+                                  subtitle: Text(sidang.agenda),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        onPressed: () async {
+                                          await showDialog(
+                                              context: context,
+                                              builder: (context) {
+                                                return EditSidang(
+                                                  perkara: widget.perkara,
+                                                  sidang: listSidang![i],
+                                                );
+                                              });
+                                          reload();
+                                        },
+                                        icon: const Icon(Icons.edit),
+                                      ),
+                                      IconButton(
+                                        onPressed: () async {
+                                          await ApiTouna.deleteSidang(
+                                              listSidang![i].id!);
+                                          reload();
+                                        },
+                                        color: Colors.pink,
+                                        icon: const Icon(Icons.delete_forever),
+                                      ),
+                                    ],
                                   ),
-                                  IconButton(
-                                    onPressed: () async {
-                                      await FirebaseFirestore.instance
-                                          .collection('perkara')
-                                          .doc(widget.perkara.id)
-                                          .collection('sidang')
-                                          .doc(listSidang![i].id)
-                                          .delete();
-                                      // await TounaDB.deleteSidang(
-                                      //     perkara.noPerkara, listSidang![i].id!);
-                                      reload();
-                                    },
-                                    icon: const Icon(Icons.delete_forever),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
+                                );
+                              },
+                            ),
             ],
           ),
         ),
@@ -149,7 +143,7 @@ class DetailPerkaraState extends State<DetailPerkara> {
 
 class AddSidang extends StatefulWidget {
   const AddSidang({super.key, required this.perkara});
-  final QueryDocumentSnapshot perkara;
+  final PerkaraModel perkara;
   @override
   AddSidangState createState() => AddSidangState();
 }
@@ -197,16 +191,8 @@ class AddSidangState extends State<AddSidang> {
         TextButton(
           onPressed: () async {
             if (!_form.currentState!.validate()) return;
-            var sidang = SidangModel(
-              date: DateTime.parse(_date.text).formatDB,
-              agenda: _agenda.text.toUpperCase(),
-            );
-            final ref = FirebaseFirestore.instance
-                .collection('perkara')
-                .doc(widget.perkara.id)
-                .collection('sidang');
-            await ref.add(sidang.toMap());
-            // await TounaDB.addSidang(widget.perkara.noPerkara, sidang);
+            await ApiTouna.addSidang(widget.perkara.noPerkara, _date.text,
+                _agenda.text.toUpperCase());
             if (context.mounted) Navigator.pop(context);
           },
           child: const Text('Save'),
@@ -218,8 +204,8 @@ class AddSidangState extends State<AddSidang> {
 
 class EditSidang extends StatefulWidget {
   const EditSidang({super.key, required this.perkara, required this.sidang});
-  final QueryDocumentSnapshot perkara;
-  final QueryDocumentSnapshot sidang;
+  final PerkaraModel perkara;
+  final SidangModel sidang;
   @override
   EditSidangState createState() => EditSidangState();
 }
@@ -236,15 +222,9 @@ class EditSidangState extends State<EditSidang> {
   }
 
   loadSidang() async {
-    final ref = await FirebaseFirestore.instance
-        .collection('perkara')
-        .doc(widget.perkara.id)
-        .collection('sidang')
-        .doc(widget.sidang.id)
-        .get();
     setState(() {
-      _date.text = ref.data()!['date'];
-      _agenda.text = ref.data()!['agenda'];
+      _date.text = widget.sidang.date;
+      _agenda.text = widget.sidang.agenda;
     });
   }
 
@@ -288,16 +268,8 @@ class EditSidangState extends State<EditSidang> {
           onPressed: () async {
             if (!_form.currentState!.validate()) return;
 
-            var update = SidangModel(
-              date: DateTime.parse(_date.text).formatDB,
-              agenda: _agenda.text.toUpperCase(),
-            );
-            await FirebaseFirestore.instance
-                .collection('perkara')
-                .doc(widget.perkara.id)
-                .collection('sidang')
-                .doc(widget.sidang.id)
-                .update(update.toMap());
+            await ApiTouna.editSidang(
+                widget.sidang.id!, _date.text, _agenda.text);
             if (context.mounted) Navigator.pop(context);
           },
           child: const Text('Save'),

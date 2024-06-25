@@ -1,11 +1,11 @@
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:excel/excel.dart' as exc;
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:touna/db/database.dart';
-import 'package:touna/model/perkara_model.dart';
+import 'package:touna/api/api.dart';
+import 'package:touna/main.dart';
+import 'package:touna/model/sidang_model.dart';
 import 'package:touna/util/date.dart';
 
 class JadwalSidang extends StatefulWidget {
@@ -16,7 +16,8 @@ class JadwalSidang extends StatefulWidget {
 
 class JadwalSidangState extends State<JadwalSidang> {
   DateTime date = DateTime.now();
-  List<Map<String, dynamic>> lists = [];
+  AppState appState = AppState.done;
+  List<SidangModel> lists = [];
   @override
   void initState() {
     super.initState();
@@ -30,53 +31,15 @@ class JadwalSidangState extends State<JadwalSidang> {
     if (date.dayname == 'Sabtu') {
       date = date.add(const Duration(days: 2));
     }
-    setState(() {});
-    setState(() => lists = []);
-    final ref = await FirebaseFirestore.instance.collection('perkara').get();
-    for (var item in ref.docs) {
-      final sdg = await FirebaseFirestore.instance
-          .collection('perkara')
-          .doc(item.id)
-          .collection('sidang')
-          .get();
-      if (sdg.docs.isNotEmpty) {
-        Map<String, dynamic> data = {};
-        var now = sdg.docs.where((element) => element['date'] == date.formatDB);
-
-        if (now.isNotEmpty) {
-          var parent = now.first.reference.parent.parent;
-          var pkr = await parent!.get();
-          data['noPerkara'] = pkr['noPerkara'];
-          data['terdakwa'] = pkr['terdakwa'];
-          data['pasal'] = pkr['pasal'];
-          data['jpu'] = pkr['jpu'];
-          data['date'] = now.first.data()['date'];
-          data['agenda'] = now.first.data()['agenda'];
-          lists.add(data);
-        }
-      }
-      setState(() {});
-    }
-
-    // print(ref.docs.where('date', isEqualTo: '2024-05-27'));
-    var data = await TounaDB.cekJadwal();
-    for (var pkr in data) {
-      var perkara = PerkaraModel.fromJson((pkr.value as Map<String, dynamic>));
-
-      for (var item in perkara.sidang!) {
-        if (item.date == date.formatDB) {
-          var sidang = {
-            'noPerkara': perkara.noPerkara,
-            'terdakwa': perkara.terdakwa,
-            'jpu': perkara.jpu,
-            'date': item.date,
-            'agenda': item.agenda,
-          };
-          lists.add(sidang);
-        }
-      }
-    }
-    setState(() {});
+    setState(() {
+      appState = AppState.loading;
+      lists = [];
+    });
+    var fetch = await ApiTouna.jadwal(date.formatDB);
+    setState(() {
+      appState = AppState.done;
+      lists = fetch;
+    });
   }
 
   download() async {
@@ -127,7 +90,7 @@ class JadwalSidangState extends State<JadwalSidang> {
       no.cellStyle = borderStyle;
       var terdakwa = sheet.cell(
           exc.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: i + 6));
-      terdakwa.value = exc.TextCellValue(lists[i]['terdakwa']);
+      // terdakwa.value = exc.TextCellValue(lists[i]['terdakwa']);
       terdakwa.cellStyle = borderStyle;
 
       var lok = sheet.cell(
@@ -136,7 +99,7 @@ class JadwalSidangState extends State<JadwalSidang> {
       lok.cellStyle = borderStyle;
       var pasal = sheet.cell(
           exc.CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: i + 6));
-      pasal.value = exc.TextCellValue(lists[i]['pasal']);
+      // pasal.value = exc.TextCellValue(lists[i]['pasal']);
       pasal.cellStyle = borderStyle;
     }
 
@@ -152,6 +115,28 @@ class JadwalSidangState extends State<JadwalSidang> {
       appBar: AppBar(
         title: const Text('Jadwal Sidang'),
         actions: [
+          Text(
+            '${lists.length} perkara',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          TextButton(
+            onPressed: () async {
+              var pick = await showDatePicker(
+                context: context,
+                firstDate: DateTime(2000),
+                lastDate: DateTime(2100),
+                initialDate: DateTime.now(),
+              );
+              if (pick != null) {
+                setState(() => date = pick);
+                cek();
+              }
+            },
+            child: Text(
+              date.fullday,
+              style: const TextStyle(fontSize: 16),
+            ),
+          ),
           IconButton(
             onPressed: () => download(),
             icon: const Icon(Icons.download),
@@ -164,108 +149,71 @@ class JadwalSidangState extends State<JadwalSidang> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: TextButton(
-                    onPressed: () async {
-                      var pick = await showDatePicker(
-                        context: context,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                        initialDate: DateTime.now(),
-                      );
-                      if (pick != null) {
-                        setState(() => date = pick);
-                        cek();
-                      }
-                    },
-                    child: Text(
-                      '${date.dayname}, ${date.fullday}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ),
-                Container(width: 32),
-                Text(
-                  lists.isEmpty ? '' : '${lists.length} perkara',
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                child: lists.isEmpty
-                    ? const Center(child: Text('Tidak ada sidang hari ini'))
-                    : ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: lists.length,
-                        itemBuilder: (context, i) {
-                          return Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                children: [
-                                  ListTile(
-                                    leading: Text(
-                                      '${i + 1}',
-                                      style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    title: Text(
-                                      lists[i]['noPerkara'],
-                                      style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
-                                    ),
+        child: appState == AppState.loading
+            ? const Center(
+                child: SizedBox(width: 200, child: LinearProgressIndicator()),
+              )
+            : lists.isEmpty
+                ? const Center(child: Text('Tidak ada sidang hari ini'))
+                : ListView.builder(
+                    // shrinkWrap: true,
+                    itemCount: lists.length,
+                    itemBuilder: (context, i) {
+                      return Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                SizedBox(
+                                  width: 30,
+                                  child: Text(
+                                    '${i + 1}',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold),
                                   ),
-                                  SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    child: Row(
-                                      children: [
-                                        SizedBox(
-                                          width: 200,
-                                          child: Text(lists[i]['terdakwa']),
-                                        ),
-                                        SizedBox(
-                                          width: 200,
-                                          child: Text(lists[i]['jpu']),
-                                        ),
-                                        SizedBox(
-                                          width: 200,
-                                          child: Text(lists[i]['date']),
-                                        ),
-                                        SizedBox(
-                                          width: 200,
-                                          child: Text(lists[i]['agenda']),
-                                        ),
-                                      ],
-                                    ),
+                                ),
+                                SizedBox(
+                                  width: 300,
+                                  child: Text(
+                                    lists[i]
+                                        .perkara!
+                                        .terdakwa
+                                        .replaceAll(';', '\n'),
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold),
                                   ),
-                                ],
-                              ),
+                                ),
+                                Container(width: 16),
+                                SizedBox(
+                                  width: 150,
+                                  child: Text(lists[i].agenda),
+                                ),
+                                Container(width: 16),
+                                SizedBox(
+                                  width: 250,
+                                  child: Text(lists[i]
+                                      .perkara!
+                                      .jpu
+                                      .replaceAll(';', '\n')),
+                                ),
+                                Container(width: 16),
+                                SizedBox(
+                                  width: 200,
+                                  child: Text(lists[i]
+                                      .perkara!
+                                      .majelis
+                                      .replaceAll(';', '\n')),
+                                ),
+                              ],
                             ),
-                          );
-                        },
-                      ),
-              ),
-            ),
-          ],
-        ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
       ),
     );
   }
