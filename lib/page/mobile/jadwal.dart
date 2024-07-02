@@ -1,11 +1,11 @@
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:excel/excel.dart' as exc;
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:touna/db/database.dart';
-import 'package:touna/model/perkara_model.dart';
+import 'package:touna/api/api.dart';
+import 'package:touna/main.dart';
+import 'package:touna/model/sidang_model.dart';
 import 'package:touna/util/date.dart';
 
 class JadwalMobile extends StatefulWidget {
@@ -16,7 +16,8 @@ class JadwalMobile extends StatefulWidget {
 
 class JadwalMobileState extends State<JadwalMobile> {
   DateTime date = DateTime.now();
-  List<Map<String, dynamic>> lists = [];
+  AppState appState = AppState.done;
+  List<SidangModel> lists = [];
   @override
   void initState() {
     super.initState();
@@ -30,53 +31,16 @@ class JadwalMobileState extends State<JadwalMobile> {
     if (date.dayname == 'Sabtu') {
       date = date.add(const Duration(days: 2));
     }
-    setState(() {});
-    setState(() => lists = []);
-    final ref = await FirebaseFirestore.instance.collection('perkara').get();
-    for (var item in ref.docs) {
-      final sdg = await FirebaseFirestore.instance
-          .collection('perkara')
-          .doc(item.id)
-          .collection('sidang')
-          .get();
-      if (sdg.docs.isNotEmpty) {
-        Map<String, dynamic> data = {};
-        var now = sdg.docs.where((element) => element['date'] == date.formatDB);
-
-        if (now.isNotEmpty) {
-          var parent = now.first.reference.parent.parent;
-          var pkr = await parent!.get();
-          data['noPerkara'] = pkr['noPerkara'];
-          data['terdakwa'] = pkr['terdakwa'];
-          data['pasal'] = pkr['pasal'];
-          data['jpu'] = pkr['jpu'];
-          data['date'] = now.first.data()['date'];
-          data['agenda'] = now.first.data()['agenda'];
-          lists.add(data);
-        }
-      }
-      setState(() {});
-    }
-
-    // print(ref.docs.where('date', isEqualTo: '2024-05-27'));
-    var data = await TounaDB.cekJadwal();
-    for (var pkr in data) {
-      var perkara = PerkaraModel.fromJson((pkr.value as Map<String, dynamic>));
-
-      for (var item in perkara.sidang!) {
-        if (item.date == date.formatDB) {
-          var sidang = {
-            'noPerkara': perkara.noPerkara,
-            'terdakwa': perkara.terdakwa,
-            'jpu': perkara.jpu,
-            'date': item.date,
-            'agenda': item.agenda,
-          };
-          lists.add(sidang);
-        }
-      }
-    }
-    setState(() {});
+    setState(() {
+      appState = AppState.loading;
+      lists = [];
+    });
+    var fetch = await ApiTouna.jadwal(date.formatDB);
+    if (!mounted) return;
+    setState(() {
+      appState = AppState.done;
+      lists = fetch;
+    });
   }
 
   download() async {
@@ -109,34 +73,36 @@ class JadwalMobileState extends State<JadwalMobile> {
     noT.cellStyle = borderStyle;
     var terdakwaT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: 0 + 5));
-    terdakwaT.value = const exc.TextCellValue('Nama Terdakwa yang dipanggil');
+    terdakwaT.value = const exc.TextCellValue('Nama Terdakwa');
     terdakwaT.cellStyle = borderStyle;
     var lapasT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 0 + 5));
-    lapasT.value = const exc.TextCellValue('Alamat');
+    lapasT.value = const exc.TextCellValue('Agenda');
     lapasT.cellStyle = borderStyle;
     var pasalT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: 0 + 5));
-    pasalT.value = const exc.TextCellValue('Keterangan / Pasal');
+    pasalT.value = const exc.TextCellValue('JPU');
     pasalT.cellStyle = borderStyle;
 
     for (var i = 0; i < lists.length; i++) {
       var no = sheet.cell(
           exc.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: i + 6));
-      no.value = exc.TextCellValue('${i + 1}');
+      no.value = exc.TextCellValue('${i + 1}.');
       no.cellStyle = borderStyle;
       var terdakwa = sheet.cell(
           exc.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: i + 6));
-      terdakwa.value = exc.TextCellValue(lists[i]['terdakwa']);
+      terdakwa.value =
+          exc.TextCellValue(lists[i].perkara!.terdakwa.replaceAll(';', '\n'));
       terdakwa.cellStyle = borderStyle;
 
       var lok = sheet.cell(
           exc.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: i + 6));
-      lok.value = const exc.TextCellValue('Lapas Ampana');
+      lok.value = exc.TextCellValue(lists[i].agenda);
       lok.cellStyle = borderStyle;
       var pasal = sheet.cell(
           exc.CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: i + 6));
-      pasal.value = exc.TextCellValue(lists[i]['pasal']);
+      pasal.value =
+          exc.TextCellValue(lists[i].perkara!.jpu.replaceAll(';', '\n'));
       pasal.cellStyle = borderStyle;
     }
 
@@ -226,7 +192,7 @@ class JadwalMobileState extends State<JadwalMobile> {
                                         fontWeight: FontWeight.bold),
                                   ),
                                   title: Text(
-                                    lists[i]['noPerkara'],
+                                    lists[i].perkara!.noPerkara,
                                     style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold),
@@ -238,23 +204,27 @@ class JadwalMobileState extends State<JadwalMobile> {
                                     children: [
                                       SizedBox(
                                         width: 200,
-                                        child: Text(lists[i]['terdakwa']
+                                        child: Text(lists[i]
+                                            .perkara!
+                                            .terdakwa
                                             .toString()
                                             .replaceAll(';', '\n')),
                                       ),
                                       SizedBox(
                                         width: 200,
-                                        child: Text(lists[i]['jpu']
+                                        child: Text(lists[i].agenda),
+                                      ),
+                                      SizedBox(
+                                        width: 200,
+                                        child: Text(lists[i]
+                                            .perkara!
+                                            .jpu
                                             .toString()
                                             .replaceAll(';', '\n')),
                                       ),
                                       SizedBox(
                                         width: 200,
-                                        child: Text(lists[i]['date']),
-                                      ),
-                                      SizedBox(
-                                        width: 200,
-                                        child: Text(lists[i]['agenda']),
+                                        child: Text(lists[i].date),
                                       ),
                                     ],
                                   ),

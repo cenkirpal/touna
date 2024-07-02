@@ -36,6 +36,7 @@ class JadwalSidangState extends State<JadwalSidang> {
       lists = [];
     });
     var fetch = await ApiTouna.jadwal(date.formatDB);
+    if (!mounted) return;
     setState(() {
       appState = AppState.done;
       lists = fetch;
@@ -203,7 +204,7 @@ class JadwalSidangState extends State<JadwalSidang> {
                                 ),
                                 Container(width: 16),
                                 SizedBox(
-                                  width: 200,
+                                  width: 250,
                                   child: Text(lists[i]
                                       .perkara!
                                       .majelis

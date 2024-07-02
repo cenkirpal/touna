@@ -40,7 +40,7 @@ class DetailPerkaraState extends State<DetailPerkara> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(perkara.noPerkara),
+        title: SelectableText(perkara.noPerkara),
         actions: [
           IconButton(
             onPressed: () => reload(),
@@ -81,6 +81,13 @@ class DetailPerkaraState extends State<DetailPerkara> {
                   const Divider(),
                   Text(
                     perkara.jpu.replaceAll(';', '\n'),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Container(height: 25),
+                  const Text('Majelis : '),
+                  const Divider(),
+                  Text(
+                    perkara.majelis.replaceAll(';', '\n'),
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ],

@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:touna/firebase_options.dart';
 import 'package:touna/page/index.dart';
+import 'package:touna/page/mobile/index.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,9 +30,9 @@ class MyApp extends StatelessWidget {
   }
 
   home() {
-    // if (Platform.isAndroid) {
-    //   return const HomeMobilePage(title: 'Jadwal Sidang KN Touna');
-    // }
+    if (Platform.isAndroid) {
+      return const HomeMobilePage(title: 'Jadwal Sidang KN Touna');
+    }
     return const HomePage(title: 'Jadwal Sidang KN Touna');
   }
 }

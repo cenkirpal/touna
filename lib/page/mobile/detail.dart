@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:touna/model/perkara_model.dart';
 import 'package:touna/model/sidang_model.dart';
@@ -6,31 +5,23 @@ import 'package:touna/util/date.dart';
 
 class DetailMobile extends StatefulWidget {
   const DetailMobile({super.key, required this.perkara});
-  final QueryDocumentSnapshot perkara;
+  final PerkaraModel perkara;
   @override
   DetailMobileState createState() => DetailMobileState();
 }
 
 class DetailMobileState extends State<DetailMobile> {
   late PerkaraModel perkara;
-  List<QueryDocumentSnapshot>? listSidang = [];
+  List<SidangModel>? listSidang = [];
   @override
   void initState() {
-    perkara =
-        PerkaraModel.fromJson((widget.perkara.data()) as Map<String, dynamic>);
+    perkara = widget.perkara;
     reload();
     super.initState();
   }
 
   reload() async {
     setState(() => listSidang = []);
-    final ref = await FirebaseFirestore.instance
-        .collection('perkara')
-        .doc(widget.perkara.id)
-        .collection('sidang')
-        .orderBy('date')
-        .get();
-    setState(() => listSidang = ref.docs);
   }
 
   @override
@@ -87,8 +78,7 @@ class DetailMobileState extends State<DetailMobile> {
                           itemCount: listSidang!.length,
                           shrinkWrap: true,
                           itemBuilder: (context, i) {
-                            var sidang = SidangModel.fromJson(
-                                listSidang![i].data()! as Map<String, dynamic>);
+                            var sidang = listSidang![i];
                             return ListTile(
                               leading: Text('${i + 1}'),
                               title: Text(DateTime.parse(sidang.date).fullday),
@@ -112,12 +102,6 @@ class DetailMobileState extends State<DetailMobile> {
                                   ),
                                   IconButton(
                                     onPressed: () async {
-                                      await FirebaseFirestore.instance
-                                          .collection('perkara')
-                                          .doc(widget.perkara.id)
-                                          .collection('sidang')
-                                          .doc(listSidang![i].id)
-                                          .delete();
                                       // await TounaDB.deleteSidang(
                                       //     perkara.noPerkara, listSidang![i].id!);
                                       reload();
@@ -140,7 +124,7 @@ class DetailMobileState extends State<DetailMobile> {
 
 class AddSidang extends StatefulWidget {
   const AddSidang({super.key, required this.perkara});
-  final QueryDocumentSnapshot perkara;
+  final PerkaraModel perkara;
   @override
   AddSidangState createState() => AddSidangState();
 }
@@ -188,15 +172,7 @@ class AddSidangState extends State<AddSidang> {
         TextButton(
           onPressed: () async {
             if (!_form.currentState!.validate()) return;
-            var sidang = SidangModel(
-              date: DateTime.parse(_date.text).formatDB,
-              agenda: _agenda.text.toUpperCase(),
-            );
-            final ref = FirebaseFirestore.instance
-                .collection('perkara')
-                .doc(widget.perkara.id)
-                .collection('sidang');
-            await ref.add(sidang.toMap());
+
             // await TounaDB.addSidang(widget.perkara.noPerkara, sidang);
             if (context.mounted) Navigator.pop(context);
           },
@@ -209,8 +185,8 @@ class AddSidangState extends State<AddSidang> {
 
 class EditSidang extends StatefulWidget {
   const EditSidang({super.key, required this.perkara, required this.sidang});
-  final QueryDocumentSnapshot perkara;
-  final QueryDocumentSnapshot sidang;
+  final PerkaraModel perkara;
+  final SidangModel sidang;
   @override
   EditSidangState createState() => EditSidangState();
 }
@@ -226,18 +202,7 @@ class EditSidangState extends State<EditSidang> {
     loadSidang();
   }
 
-  loadSidang() async {
-    final ref = await FirebaseFirestore.instance
-        .collection('perkara')
-        .doc(widget.perkara.id)
-        .collection('sidang')
-        .doc(widget.sidang.id)
-        .get();
-    setState(() {
-      _date.text = ref.data()!['date'];
-      _agenda.text = ref.data()!['agenda'];
-    });
-  }
+  loadSidang() async {}
 
   @override
   Widget build(BuildContext context) {
@@ -279,16 +244,6 @@ class EditSidangState extends State<EditSidang> {
           onPressed: () async {
             if (!_form.currentState!.validate()) return;
 
-            var update = SidangModel(
-              date: DateTime.parse(_date.text).formatDB,
-              agenda: _agenda.text.toUpperCase(),
-            );
-            await FirebaseFirestore.instance
-                .collection('perkara')
-                .doc(widget.perkara.id)
-                .collection('sidang')
-                .doc(widget.sidang.id)
-                .update(update.toMap());
             if (context.mounted) Navigator.pop(context);
           },
           child: const Text('Save'),

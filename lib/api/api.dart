@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:touna/model/perkara_model.dart';
 import 'package:touna/model/sidang_model.dart';
 
@@ -22,7 +23,8 @@ class ApiTouna {
       }
       // print(response.data);
       return list;
-    } on DioException {
+    } on DioException catch (e) {
+      error(e.response?.data.toString());
       return list;
     }
   }
@@ -39,7 +41,8 @@ class ApiTouna {
       final response = await request;
       return PerkaraModel.fromJson(response.data);
     } on DioException catch (e) {
-      throw Exception(e.response?.data);
+      error(e.response?.data);
+      throw Exception(e.response?.data.toString());
     }
   }
 
@@ -55,7 +58,8 @@ class ApiTouna {
 
     try {
       await request;
-    } on DioException {
+    } on DioException catch (e) {
+      error(e.response?.data.toString());
       throw Exception('Error Adding');
     }
   }
@@ -75,8 +79,25 @@ class ApiTouna {
 
     try {
       await request;
-    } on DioException {
+    } on DioException catch (e) {
+      error(e.response?.data.toString());
       throw Exception('Error Editing');
+    }
+  }
+
+  static Future putus(int id, bool putusan) async {
+    final request = Dio().post(
+      'https://cenkirpal.com/api/touna/putus',
+      options: Options(headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      }),
+      data: {'id': id, 'putusan': putusan},
+    );
+    try {
+      await request;
+    } on DioException catch (e) {
+      error(e.response?.data.toString());
     }
   }
 
@@ -92,7 +113,8 @@ class ApiTouna {
 
     try {
       await request;
-    } on DioException {
+    } on DioException catch (e) {
+      error(e.response?.data.toString());
       throw Exception('Error Deleting');
     }
   }
@@ -113,7 +135,8 @@ class ApiTouna {
         list.add(SidangModel.fromJson(item));
       }
       return list;
-    } on DioException {
+    } on DioException catch (e) {
+      error(e.response?.data.toString());
       return list;
     }
   }
@@ -134,7 +157,8 @@ class ApiTouna {
 
     try {
       await request;
-    } on DioException {
+    } on DioException catch (e) {
+      error(e.response?.data.toString());
       throw Exception('Error Adding');
     }
   }
@@ -157,7 +181,8 @@ class ApiTouna {
 
     try {
       await request;
-    } on DioException {
+    } on DioException catch (e) {
+      error(e.response?.data.toString());
       throw Exception('Error Editing');
     }
   }
@@ -174,7 +199,8 @@ class ApiTouna {
 
     try {
       await request;
-    } on DioException {
+    } on DioException catch (e) {
+      error(e.response?.data.toString());
       throw Exception('Error Deleting');
     }
   }
@@ -196,8 +222,13 @@ class ApiTouna {
         list.add(SidangModel.fromJson(item));
       }
       return list;
-    } on DioException {
+    } on DioException catch (e) {
+      error(e.response?.data.toString());
       throw Exception('Error');
     }
+  }
+
+  static error(String? e) {
+    if (kDebugMode) print(e ?? 'Error');
   }
 }

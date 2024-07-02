@@ -1,9 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:touna/api/api.dart';
 import 'package:touna/main.dart';
 import 'package:touna/model/perkara_model.dart';
+import 'package:touna/model/sidang_model.dart';
 import 'package:touna/page/detail_perkara.dart';
 import 'package:touna/page/edit_perkara.dart';
 import 'package:touna/page/jadwal_sidang.dart';
@@ -30,13 +29,13 @@ class HomePageState extends State<HomePage> {
     fetch();
   }
 
-  fetch({String? keyword}) async {
+  fetch() async {
     setState(() {
       appState = AppState.loading;
       lists = [];
     });
-    var d = await ApiTouna.getPerkara(keyword: keyword);
-
+    var d = await ApiTouna.getPerkara(keyword: _keyword.text);
+    if (!mounted) return;
     setState(() {
       lists = d;
       appState = AppState.done;
@@ -78,9 +77,7 @@ class HomePageState extends State<HomePage> {
                 ),
               ),
               onFieldSubmitted: (value) {
-                if (_keyword.text.isNotEmpty) {
-                  fetch(keyword: _keyword.text);
-                }
+                if (_keyword.text.isNotEmpty) fetch();
               },
             ),
           ),
@@ -121,115 +118,59 @@ class HomePageState extends State<HomePage> {
                       ),
                       shadowColor: Colors.pink,
                       surfaceTintColor: Colors.pink,
+                      color: data.putusan == true ? Colors.pink[200] : null,
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          ListTile(
-                            tileColor:
-                                data.putusan == true ? Colors.blue[300] : null,
-                            leading: Text(
-                              '${i + 1}',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            title: formatText(
-                              '${data.noPerkara}\n${data.terdakwa}',
-                              align: TextAlign.end,
-                              style: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                            subtitle: !detail
-                                ? Container()
-                                : Container(
-                                    alignment: Alignment.centerLeft,
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Container(
-                                            width: 200,
-                                            padding: const EdgeInsets.all(8),
-                                            child: formatText(data.terdakwa),
-                                          ),
-                                          Container(
-                                            width: 200,
-                                            padding: const EdgeInsets.all(8),
-                                            child: Text(data.pasal),
-                                          ),
-                                          Container(
-                                            width: 200,
-                                            padding: const EdgeInsets.all(8),
-                                            child: formatText(data.jpu),
-                                          ),
-                                          Container(
-                                            width: 200,
-                                            padding: const EdgeInsets.all(8),
-                                            child: Text(data.majelis),
-                                          ),
-                                          Container(
-                                            width: 200,
-                                            padding: const EdgeInsets.all(8),
-                                            child: Text(data.panitera),
-                                          ),
-                                        ],
-                                      ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      '${i + 1}',
+                                      style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
                                     ),
-                                  ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  onPressed: () async {
-                                    await Navigator.push(context,
-                                        MaterialPageRoute(builder: (context) {
-                                      return DetailPerkara(perkara: lists[i]);
-                                    }));
-                                    fetch();
-                                  },
-                                  icon: const Icon(
-                                    Icons.remove_red_eye,
-                                    color: Colors.blue,
-                                  ),
+                                    Container(width: 16),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.push(context,
+                                                MaterialPageRoute(
+                                                    builder: (context) {
+                                              return DetailPerkara(
+                                                  perkara: lists[i]);
+                                            }));
+                                          },
+                                          child: Text(
+                                            data.noPerkara,
+                                            style: const TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.black54,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                        Text(
+                                          data.terdakwa.replaceAll(';', '\n'),
+                                          style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
-                                IconButton(
-                                  onPressed: () async {
-                                    showDialog(
-                                        context: context,
-                                        builder: (context) {
-                                          return AlertDialog(
-                                            content:
-                                                const Text('Delete Data ?'),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () {
-                                                  Navigator.pop(context);
-                                                },
-                                                child: const Text('Batal'),
-                                              ),
-                                              TextButton(
-                                                onPressed: () async {
-                                                  await ApiTouna.deletePerkara(
-                                                      lists[i].id!);
-                                                  fetch();
-                                                  if (context.mounted) {
-                                                    Navigator.pop(context);
-                                                  }
-                                                },
-                                                child: const Text('Delete'),
-                                              ),
-                                            ],
-                                          );
-                                        });
-                                  },
-                                  icon: const Icon(
-                                    Icons.delete_forever,
-                                    color: Colors.pink,
-                                  ),
-                                ),
-                                PopupMenuButton(
+                              ),
+                              SizedBox(
+                                width: 50,
+                                child: PopupMenuButton(
                                   itemBuilder: (context) {
                                     return [
                                       PopupMenuItem(
@@ -248,171 +189,194 @@ class HomePageState extends State<HomePage> {
                                       ),
                                       PopupMenuItem(
                                         onTap: () {
-                                          // Future.delayed(Duration.zero, () async {
-                                          //   bool inkrah = data.inkrah ?? false;
-                                          //   await FirebaseFirestore.instance
-                                          //       .collection('perkara')
-                                          //       .doc(lists[i].id)
-                                          //       .update({'inkrah': !inkrah});
-                                          //   fetch();
-                                          // });
+                                          Future.delayed(Duration.zero,
+                                              () async {
+                                            bool putus = data.putusan ?? false;
+
+                                            await ApiTouna.putus(
+                                                lists[i].id!, !putus);
+
+                                            fetch();
+                                          });
                                         },
                                         child: const Text('Putusan'),
+                                      ),
+                                      PopupMenuItem(
+                                        onTap: () {
+                                          Future.delayed(Duration.zero,
+                                              () async {
+                                            await showDialog(
+                                                context: context,
+                                                builder: (context) {
+                                                  return AlertDialog(
+                                                    content: const Text(
+                                                        'Delete Data ?'),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () {
+                                                          Navigator.pop(
+                                                              context);
+                                                        },
+                                                        child:
+                                                            const Text('Batal'),
+                                                      ),
+                                                      TextButton(
+                                                        onPressed: () async {
+                                                          await ApiTouna
+                                                              .deletePerkara(
+                                                                  lists[i].id!);
+                                                          fetch();
+                                                          if (context.mounted) {
+                                                            Navigator.pop(
+                                                                context);
+                                                          }
+                                                        },
+                                                        child: const Text(
+                                                            'Delete'),
+                                                      ),
+                                                    ],
+                                                  );
+                                                });
+                                            fetch();
+                                          });
+                                        },
+                                        child: const Text('Delete'),
                                       ),
                                     ];
                                   },
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                          ////
-                          ///
-                          ///
-                          if (data.sidang != null)
-                            Container(
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                  color: Colors.green.shade400,
-                                  borderRadius: const BorderRadius.only(
-                                    bottomLeft: Radius.circular(8),
-                                    bottomRight: Radius.circular(8),
-                                  )),
+                          if (detail) const Divider(),
+                          if (detail)
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
                               child: SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
                                 child: Row(
-                                  children: data.sidang!
-                                      .asMap()
-                                      .map((key, value) => MapEntry(
-                                          key,
-                                          Container(
-                                            padding: const EdgeInsets.fromLTRB(
-                                                4, 4, 18, 4),
-                                            child: Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  '${key + 1}',
-                                                  style: const TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                                ),
-                                                Container(width: 12),
-                                                Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(DateTime.parse(
-                                                            value.date)
-                                                        .fullday),
-                                                    Text(
-                                                      value.agenda,
-                                                      style: key != 0
-                                                          ? null
-                                                          : const TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
+                                  children: [
+                                    SizedBox(
+                                      width: 300,
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              data.jpu.replaceAll(';', '\n'),
+                                              style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w400),
                                             ),
-                                          )))
-                                      .values
-                                      .toList(),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Container(width: 32),
+                                    SizedBox(
+                                      width: 300,
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              data.majelis
+                                                  .replaceAll(';', '\n'),
+                                              style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w400),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Container(width: 32),
+                                    SizedBox(
+                                      width: 300,
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              data.panitera
+                                                  .replaceAll(';', '\n'),
+                                              style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w400),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
-
-                          ///
-                          ///
-                          // StreamBuilder<QuerySnapshot>(
-                          //     stream: FirebaseFirestore.instance
-                          //         .collection('perkara')
-                          //         .doc(lists[i].id!)
-                          //         .collection('sidang')
-                          //         .orderBy('date', descending: true)
-                          //         .snapshots(),
-                          //     builder: (context, snap) {
-                          //       if (!snap.hasData) {
-                          //         return Container();
-                          //       }
-                          //       if (snap.data!.docs.isNotEmpty) {
-                          //         return Container(
-                          //           width: double.infinity,
-                          //           decoration: BoxDecoration(
-                          //               color: Colors.green.shade400,
-                          //               borderRadius: const BorderRadius.only(
-                          //                 bottomLeft: Radius.circular(8),
-                          //                 bottomRight: Radius.circular(8),
-                          //               )),
-                          //           child: SingleChildScrollView(
-                          //             scrollDirection: Axis.horizontal,
-                          //             child: Row(
-                          //               children: snap.data!.docs
-                          //                   .asMap()
-                          //                   .map((key, value) => MapEntry(
-                          //                       key,
-                          //                       Container(
-                          //                         padding:
-                          //                             const EdgeInsets.fromLTRB(
-                          //                                 4, 4, 18, 4),
-                          //                         child: Row(
-                          //                           crossAxisAlignment:
-                          //                               CrossAxisAlignment.start,
-                          //                           children: [
-                          //                             Text(
-                          //                               '${key + 1}',
-                          //                               style: const TextStyle(
-                          //                                   fontSize: 16,
-                          //                                   fontWeight:
-                          //                                       FontWeight.bold),
-                          //                             ),
-                          //                             Container(width: 12),
-                          //                             Column(
-                          //                               crossAxisAlignment:
-                          //                                   CrossAxisAlignment
-                          //                                       .start,
-                          //                               children: [
-                          //                                 Text(DateTime.parse((value
-                          //                                                 .data()!
-                          //                                             as Map<String,
-                          //                                                 dynamic>)[
-                          //                                         'date'])
-                          //                                     .fullday),
-                          //                                 Text(
-                          //                                   (value.data()! as Map<
-                          //                                       String,
-                          //                                       dynamic>)['agenda'],
-                          //                                   style: key != 0
-                          //                                       ? null
-                          //                                       : const TextStyle(
-                          //                                           fontWeight:
-                          //                                               FontWeight
-                          //                                                   .bold),
-                          //                                 ),
-                          //                               ],
-                          //                             ),
-                          //                           ],
-                          //                         ),
-                          //                       )))
-                          //                   .values
-                          //                   .toList(),
-                          //             ),
-                          //           ),
-                          //         );
-                          //       }
-                          //       return Container();
-                          //     }),
-                          if (i == lists.length - 1) Container(height: 40),
+                          if (data.sidang != null)
+                            sidang(data.sidang!.reversed.toList()),
                         ],
                       ),
                     );
                   },
                 ),
     );
+  }
+
+  Widget sidang(List<SidangModel> data) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+          color: Colors.green.shade400,
+          borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(8),
+            bottomRight: Radius.circular(8),
+          )),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: data
+              .toList()
+              .asMap()
+              .map((key, value) => MapEntry(
+                  key,
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(4, 4, 18, 4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${key + 1}',
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        Container(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(DateTime.parse(value.date).fullday),
+                            Text(
+                              value.agenda,
+                              style: key != 0
+                                  ? null
+                                  : TextStyle(
+                                      color: colorSidang(value),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  )))
+              .values
+              .toList(),
+        ),
+      ),
+    );
+  }
+
+  Color? colorSidang(SidangModel sidang) {
+    if (DateTime.parse(sidang.date).difference(DateTime.now()).inDays >= 0) {
+      return null;
+    }
+    return Colors.pink[700];
   }
 
   Widget formatText(String txt, {TextAlign? align, TextStyle? style}) {
@@ -542,10 +506,10 @@ class AddPerkaraState extends State<AddPerkara> {
               panitera: _panitera.text,
               noPerkara: _noPerkara.text,
               putusan: false,
-            );
-            await FirebaseAuth.instance.signInAnonymously();
-            final ref = FirebaseFirestore.instance.collection('perkara');
-            await ref.add(pkr.toMap());
+            ).toMap();
+            pkr.removeWhere((key, value) => key == 'sidang');
+
+            await ApiTouna.addPerkara(pkr);
             if (context.mounted) Navigator.pop(context);
           },
           child: const Text('Simpan'),
