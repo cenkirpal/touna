@@ -128,7 +128,7 @@ class JadwalSidangState extends State<JadwalSidang> {
                 context: context,
                 firstDate: DateTime(2000),
                 lastDate: DateTime(2100),
-                initialDate: DateTime.now(),
+                initialDate: date,
               );
               if (pick != null) {
                 setState(() => date = pick);
@@ -147,6 +147,10 @@ class JadwalSidangState extends State<JadwalSidang> {
           IconButton(
             onPressed: () => cek(),
             icon: const Icon(Icons.refresh),
+          ),
+          IconButton(
+            onPressed: () => rekap(),
+            icon: const Icon(Icons.list),
           ),
         ],
       ),
@@ -210,6 +214,11 @@ class JadwalSidangState extends State<JadwalSidang> {
                                       .majelis
                                       .replaceAll(';', '\n')),
                                 ),
+                                Container(width: 16),
+                                SizedBox(
+                                  width: 250,
+                                  child: Text(lists[i].perkara!.panitera),
+                                ),
                               ],
                             ),
                           ),
@@ -217,6 +226,107 @@ class JadwalSidangState extends State<JadwalSidang> {
                       );
                     },
                   ),
+      ),
+    );
+  }
+
+  rekap() {
+    showDialog(
+        context: this.context,
+        builder: (context) {
+          return const RekapJadwal();
+        });
+  }
+}
+
+class RekapJadwal extends StatefulWidget {
+  const RekapJadwal({super.key});
+
+  @override
+  RekapJadwalState createState() => RekapJadwalState();
+}
+
+class RekapJadwalState extends State<RekapJadwal> {
+  List<SidangModel> lists = [];
+  DateTimeRange? date;
+
+  rekap(DateTimeRange date) async {
+    setState(() => lists = []);
+    final data =
+        await ApiTouna.rekapJadwal(date.start.formatDB, date.end.formatDB);
+
+    setState(() => lists = data);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Size size = MediaQuery.of(this.context).size;
+
+    return AlertDialog(
+      content: SizedBox(
+        height: size.height - 100,
+        width: size.width - 100,
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  lists.isEmpty
+                      ? ''
+                      : 'Total Perkara : ${lists.length}\n\n${date == null ? '' : '${date!.start.fullday} - ${date!.end.fullday}'}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    var picker = await showDateRangePicker(
+                      builder: (context, child) {
+                        return Column(
+                          children: [
+                            ConstrainedBox(
+                              constraints: BoxConstraints(
+                                  maxWidth: 400.0,
+                                  maxHeight: size.height - 100),
+                              child: child,
+                            )
+                          ],
+                        );
+                      },
+                      context: context,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2100),
+                    );
+                    setState(() => date = picker);
+                    if (picker != null) rekap(picker);
+                  },
+                  child: const Text('Pilih Tanggal'),
+                ),
+              ],
+            ),
+            const Divider(color: Colors.grey),
+            if (lists.isNotEmpty)
+              Expanded(
+                child: ListView.builder(
+                  itemCount: lists.length,
+                  shrinkWrap: true,
+                  itemBuilder: (context, i) {
+                    return Card(
+                      child: ListTile(
+                        leading: Text(
+                          '${i + 1}',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w500, fontSize: 14),
+                        ),
+                        title: Text(
+                            lists[i].perkara!.terdakwa.replaceAll(';', '\n')),
+                        trailing: Text(DateTime.parse(lists[i].date).fullday),
+                      ),
+                    );
+                  },
+                ),
+              )
+          ],
+        ),
       ),
     );
   }

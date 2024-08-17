@@ -4,7 +4,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_io.dart';
 import 'package:sembast/utils/value_utils.dart';
-import 'package:touna/model/perkara_model.dart';
 import 'package:touna/model/sidang_model.dart';
 
 class TounaDB {
@@ -16,11 +15,49 @@ class TounaDB {
     return db;
   }
 
-  static Future addPerkara(PerkaraModel perkara) async {
+  static Future add(String record, Map<String, dynamic> data) async {
     final db = await init();
-    final store = intMapStoreFactory.store('perkara');
-    await store.add(db, perkara.toMap());
+    final store = intMapStoreFactory.store(record);
+    // await store.drop(db);
+    await store.add(db, data);
   }
+
+  static Future editJenis(int harga, int key) async {
+    final db = await init();
+    final store = intMapStoreFactory.store('jenis');
+    await store.update(
+      db,
+      {'harga': harga},
+      finder: Finder(filter: Filter.byKey(key)),
+    );
+  }
+
+  static Future editSPBU(Map<String, dynamic> data, int key) async {
+    final db = await init();
+    final store = intMapStoreFactory.store('spbu');
+    await store.update(
+      db,
+      data,
+      finder: Finder(filter: Filter.byKey(key)),
+    );
+  }
+
+  static Future delete(String record, int key) async {
+    final db = await init();
+    final store = intMapStoreFactory.store(record);
+    // await store.drop(db);
+    await store.delete(db, finder: Finder(filter: Filter.byKey(key)));
+  }
+
+  static Future<List<RecordSnapshot>> get(String record) async {
+    final db = await init();
+    final store = intMapStoreFactory.store(record);
+    final data = await store.query().getSnapshots(db);
+    return data;
+  }
+
+//
+//
 
   static Future deletePerkara(int? key) async {
     final db = await init();
@@ -37,15 +74,6 @@ class TounaDB {
     final store = intMapStoreFactory.store('perkara');
     final data = await store.query().getSnapshots(db);
     return data;
-  }
-
-  static Future<RecordSnapshot> get(int key) async {
-    final db = await init();
-    final store = intMapStoreFactory.store('perkara');
-    final data = await store
-        .query(finder: Finder(filter: Filter.byKey(key)))
-        .getSnapshot(db);
-    return data!;
   }
 
   static Future<List<RecordSnapshot>> cekJadwal() async {

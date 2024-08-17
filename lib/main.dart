@@ -1,15 +1,10 @@
 import 'dart:io';
-
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:touna/firebase_options.dart';
 import 'package:touna/page/index.dart';
 import 'package:touna/page/mobile/index.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
+void main()  {
+ runApp(const MyApp());
 }
 
 enum AppState { done, loading, error }

@@ -1,10 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:touna/api/response.dart';
 import 'package:touna/model/perkara_model.dart';
 import 'package:touna/model/sidang_model.dart';
 
 class ApiTouna {
-  static Future<List<PerkaraModel>> getPerkara({String? keyword}) async {
+  static Future<ResponseApi> getPerkara({String? keyword}) async {
     List<PerkaraModel> list = [];
     final request = Dio().post(
       'https://cenkirpal.com/api/touna/get-perkara',
@@ -21,11 +22,12 @@ class ApiTouna {
       for (var item in data) {
         list.add(PerkaraModel.fromJson(item));
       }
+      return ResponseApi<PerkaraModel>(error: false, result: list);
+
       // print(response.data);
-      return list;
     } on DioException catch (e) {
       error(e.response?.data.toString());
-      return list;
+      return ResponseApi(error: false, msg: e.message ?? 'Unknown Error');
     }
   }
 
@@ -230,5 +232,29 @@ class ApiTouna {
 
   static error(String? e) {
     if (kDebugMode) print(e ?? 'Error');
+  }
+
+  static Future<List<SidangModel>> rekapJadwal(
+      String dateStart, String dateEnd) async {
+    List<SidangModel> list = [];
+    final request = Dio().post(
+      'https://cenkirpal.com/api/touna/rekap-jadwal',
+      options: Options(headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      }),
+      data: {'dateStart': dateStart, 'dateEnd': dateEnd},
+    );
+    try {
+      final response = await request;
+      List<dynamic> data = response.data;
+      for (var item in data) {
+        list.add(SidangModel.fromJson(item));
+      }
+      return list;
+    } on DioException catch (e) {
+      error(e.response?.data.toString());
+      throw Exception('Error');
+    }
   }
 }

@@ -1,7 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:flutter/material.dart';
 import 'package:touna/api/api.dart';
+import 'package:touna/api/response.dart';
 import 'package:touna/main.dart';
 import 'package:touna/model/perkara_model.dart';
 import 'package:touna/page/edit_perkara.dart';
@@ -35,10 +35,10 @@ class HomeMobilePageHomePageState extends State<HomeMobilePage> {
       appState = AppState.loading;
       lists = [];
     });
-    var d = await ApiTouna.getPerkara(keyword: _keyword.text);
+    ResponseApi d = await ApiTouna.getPerkara(keyword: _keyword.text);
     if (!mounted) return;
     setState(() {
-      lists = d;
+      lists = d.result as List<PerkaraModel>;
       appState = AppState.done;
     });
   }
@@ -420,17 +420,8 @@ class AddPerkaraState extends State<AddPerkara> {
         TextButton(
           onPressed: () async {
             if (!_form.currentState!.validate()) return;
-            var pkr = PerkaraModel(
-              terdakwa: _terdakwa.text,
-              pasal: _pasal.text,
-              jpu: _jpu.text,
-              majelis: _majelis.text,
-              panitera: _panitera.text,
-              noPerkara: _noPerkara.text,
-            );
-            await FirebaseAuth.instance.signInAnonymously();
-            final ref = FirebaseFirestore.instance.collection('perkara');
-            await ref.add(pkr.toMap());
+            
+           
             if (context.mounted) Navigator.pop(context);
           },
           child: const Text('Simpan'),

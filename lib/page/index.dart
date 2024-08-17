@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:touna/api/api.dart';
+import 'package:touna/api/response.dart';
 import 'package:touna/main.dart';
 import 'package:touna/model/perkara_model.dart';
 import 'package:touna/model/sidang_model.dart';
 import 'package:touna/page/detail_perkara.dart';
+import 'package:touna/page/drawer.dart';
 import 'package:touna/page/edit_perkara.dart';
 import 'package:touna/page/jadwal_sidang.dart';
 import 'package:touna/util/date.dart';
@@ -22,6 +24,8 @@ class HomePageState extends State<HomePage> {
   final _keyword = TextEditingController();
   List<PerkaraModel> lists = [];
   bool detail = false;
+  bool showDrawer = false;
+  String error = '';
 
   @override
   initState() {
@@ -34,11 +38,16 @@ class HomePageState extends State<HomePage> {
       appState = AppState.loading;
       lists = [];
     });
-    var d = await ApiTouna.getPerkara(keyword: _keyword.text);
+    ResponseApi d = await ApiTouna.getPerkara(keyword: _keyword.text);
     if (!mounted) return;
     setState(() {
-      lists = d;
-      appState = AppState.done;
+      if (d.error) {
+        error = d.msg ?? 'Unknown Error';
+        appState = AppState.error;
+      } else {
+        lists = d.result as List<PerkaraModel>;
+        appState = AppState.done;
+      }
     });
   }
 
@@ -55,9 +64,14 @@ class HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const DrawerWidget(),
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
+        // leading: IconButton(
+        //   onPressed: () {},
+        //   icon: Icon(Icons.menu),
+        // ),
         actions: [
           Container(
             width: 200,
@@ -99,11 +113,17 @@ class HomePageState extends State<HomePage> {
         ],
       ),
       body: appState == AppState.loading
-          ? const Center(
-              child: SizedBox(
-              width: 200,
-              child: LinearProgressIndicator(),
-            ))
+          ? appState == AppState.error
+              ? Center(
+                  child: SizedBox(
+                  width: 200,
+                  child: Text(error),
+                ))
+              : const Center(
+                  child: SizedBox(
+                  width: 200,
+                  child: LinearProgressIndicator(),
+                ))
           : lists.isEmpty
               ? const Center(child: Text('No Data'))
               : ListView.builder(
