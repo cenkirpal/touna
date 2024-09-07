@@ -19,7 +19,11 @@ class TounaDB {
     final db = await init();
     final store = intMapStoreFactory.store(record);
     // await store.drop(db);
-    await store.add(db, data);
+    try {
+      await store.add(db, data);
+    } catch (e) {
+      print(e);
+    }
   }
 
   static Future editJenis(int harga, int key) async {

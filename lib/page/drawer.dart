@@ -26,9 +26,12 @@ class DrawerState extends State<DrawerWidget> {
                   colorBlendMode: BlendMode.overlay,
                   filterQuality: FilterQuality.high,
                 ),
-                TextButton(
-                  onPressed: () => setState(() => show = !show),
-                  child: const Text('KN TOJO UNA UNA'),
+                GestureDetector(
+                  onDoubleTap: () => setState(() => show = !show),
+                  child: const Text(
+                    'KN TOJO UNA UNA',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             ),

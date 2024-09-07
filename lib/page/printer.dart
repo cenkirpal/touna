@@ -21,6 +21,8 @@ class PrinterPageState extends State<PrinterPage> {
   late RecordSnapshot jenis;
   late List<RecordSnapshot> listSpbu;
   late RecordSnapshot spbu;
+  final regNum = RegExp(r'[^0-9]');
+  int harga = 0;
   BluetoothInfo? printer;
   List<BluetoothInfo> listPrinter = [];
   final _form = GlobalKey<FormState>();
@@ -40,26 +42,6 @@ class PrinterPageState extends State<PrinterPage> {
   final _operator = TextEditingController();
   //
   final _plat = TextEditingController();
-  void startScan() async {
-    // await Future.forEach(listResult, (BluetoothInfo bluetooth) {
-    //   String name = bluetooth.name;
-    //   String mac = bluetooth.macAdress;
-    // });
-
-    // _devicesStreamSubscription?.cancel();
-    // await _flutterThermalPrinterPlugin.getPrinters();
-    // _devicesStreamSubscription = _flutterThermalPrinterPlugin.devicesStream
-    //     .listen((List<Printer> event) {
-    //   log(event.map((e) => e.name).toList().toString());
-    //   setState(() {
-    //     listPrinter = event;
-    //     listPrinter.removeWhere((element) =>
-    //         element.name == null ||
-    //         element.name == '' ||
-    //         !element.name!.toLowerCase().contains('print'));
-    //   });
-    // });
-  }
 
   @override
   initState() {
@@ -68,20 +50,12 @@ class PrinterPageState extends State<PrinterPage> {
     _kodePom.text = '7494622';
     _alamat.text =
         'SPBU TRANSSULAWESI, PUSUNGI\nJL. SULTAN HASANUDIN AMPANA KOTA\nTelp. 02182651332';
-    //
     _shift.text = '1';
     _trans.text = '363751';
     _tgl.text = '06/07/2024';
     _jam.text = '10:10:10';
-    //
     _pompa.text = '2';
-    // _produk.text = 'PERTALITE';
-    // _harga.text = 'Rp. 10.000';
-    // _volume.text = '10';
-    // _total.text = 'Rp. 100.000';
     _operator.text = 'Hasanudin';
-    //
-    // _cash.text = 'Rp. 100.000';
     _plat.text = '-';
     scanPrinter();
   }
@@ -101,22 +75,21 @@ class PrinterPageState extends State<PrinterPage> {
       _produk.text = (jenis.value as Map)['nama'];
       _harga.text = rupiah((jenis.value as Map)['harga']);
       _volume.text = '10';
+      harga = int.parse(_harga.text.replaceAll(regNum, ''));
     });
     hitungTotal();
   }
 
   hitungTotal() {
-    var hrg = (jenis.value as Map<String, dynamic>)['harga'].toString();
     var vol = double.parse(_volume.text.replaceAll(',', '.'));
-    setState(() =>
-        _total.text = _total.text = rupiah((double.parse(hrg) * vol).toInt()));
+    setState(() => _total.text =
+        _total.text = rupiah((double.parse('$harga') * vol).toInt()));
   }
 
   Future<void> scanPrinter() async {
     setState(() => listPrinter = []);
     final pair = await PrintBluetoothThermal.pairedBluetooths;
     if (mounted) setState(() => listPrinter = pair);
-    // if (pair.isNotEmpty) showDevicesList();
   }
 
   setPrint() async {
@@ -182,162 +155,105 @@ class PrinterPageState extends State<PrinterPage> {
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: SingleChildScrollView(
-          child: Column(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  SizedBox(
-                    width: 150,
-                    height: 100,
-                    child: TextButton(
-                      onPressed: () {},
-                      child: const Text('SPBU'),
-                    ),
-                  ),
-                  if (listSpbu.isNotEmpty)
-                    DropdownButton(
-                      underline: Container(),
-                      borderRadius: BorderRadius.circular(8),
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      value: spbu,
-                      items: listSpbu
-                          .asMap()
-                          .map((k, v) {
-                            return MapEntry(
-                                k,
-                                DropdownMenuItem<RecordSnapshot>(
-                                  value: v,
-                                  child: Text((v.value
-                                      as Map<String, dynamic>)['nama']),
-                                ));
-                          })
-                          .values
-                          .toList(),
-                      onChanged: (i) {
-                        var pom = (i!.value as Map<String, dynamic>);
-                        setState(() {
-                          spbu = i;
-                          _kodePom.text = pom['kode'].toString();
-                          _alamat.text = '${pom['nama']}\n${pom['alamat']}';
-                        });
+              receipWidget(),
+              Container(width: 16),
+              Expanded(
+                child: Column(
+                  children: [
+                    ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: listSpbu.length,
+                      itemBuilder: (context, i) {
+                        return ListTile(
+                          onTap: () {
+                            var pom =
+                                (listSpbu[i].value as Map<String, dynamic>);
+                            setState(() {
+                              _kodePom.text = pom['kode'].toString();
+                              _alamat.text = '${pom['nama']}\n${pom['alamat']}';
+                            });
+                          },
+                          title: Text((listSpbu[i].value
+                              as Map<String, dynamic>)['title']),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                onPressed: () async {
+                                  await showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return EditSPBU(spbu: listSpbu[i]);
+                                      });
+                                  init();
+                                },
+                                icon: const Icon(Icons.edit),
+                              ),
+                              IconButton(
+                                onPressed: () async {
+                                  await TounaDB.delete(
+                                      'spbu', listSpbu[i].key as int);
+                                  init();
+                                },
+                                color: Colors.pink,
+                                icon: const Icon(Icons.delete_forever),
+                              ),
+                            ],
+                          ),
+                        );
                       },
                     ),
-                  SizedBox(
-                    width: 150,
-                    height: 100,
-                    child: TextButton(
-                      onPressed: () {},
-                      child: const Text('JENIS'),
-                    ),
-                  ),
-                  if (listJenis.isNotEmpty)
-                    DropdownButton(
-                      underline: Container(),
-                      borderRadius: BorderRadius.circular(8),
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      value: jenis,
-                      items: listJenis
-                          .asMap()
-                          .map((k, v) {
-                            return MapEntry(
-                                k,
-                                DropdownMenuItem<RecordSnapshot>(
-                                  value: v,
-                                  child: Text((v.value
-                                      as Map<String, dynamic>)['nama']),
-                                ));
-                          })
-                          .values
-                          .toList(),
-                      onChanged: (i) {
-                        var bensin = (i!.value as Map<String, dynamic>);
-                        setState(() {
-                          jenis = i;
-                          _harga.text = rupiah(bensin['harga']);
-                          _produk.text = bensin['nama'];
-                        });
-                        hitungTotal();
+                    const Divider(),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: listJenis.length,
+                      itemBuilder: (context, i) {
+                        return ListTile(
+                          onTap: () {
+                            var bensin =
+                                (listJenis[i].value as Map<String, dynamic>);
+                            setState(() {
+                              _harga.text = rupiah(bensin['harga']);
+                              harga = bensin['harga'];
+                              _produk.text = bensin['nama'];
+                            });
+                            hitungTotal();
+                          },
+                          title: Text((listJenis[i].value
+                              as Map<String, dynamic>)['nama']),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                onPressed: () async {
+                                  await showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return EditJenis(jenis: listJenis[i]);
+                                      });
+                                  init();
+                                },
+                                icon: const Icon(Icons.edit),
+                              ),
+                              IconButton(
+                                onPressed: () async {
+                                  await TounaDB.delete(
+                                      'jenis', listJenis[i].key as int);
+                                  init();
+                                },
+                                color: Colors.pink,
+                                icon: const Icon(Icons.delete_forever),
+                              ),
+                            ],
+                          ),
+                        );
                       },
                     ),
-                ],
-              ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  receipWidget(),
-                  Container(width: 16),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: listSpbu.length,
-                          itemBuilder: (context, i) {
-                            return ListTile(
-                              title: Text((listSpbu[i].value
-                                  as Map<String, dynamic>)['nama']),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    onPressed: () async {
-                                      await showDialog(
-                                          context: context,
-                                          builder: (context) {
-                                            return EditSPBU(spbu: listSpbu[i]);
-                                          });
-                                      init();
-                                    },
-                                    icon: const Icon(Icons.edit),
-                                  ),
-                                  IconButton(
-                                    onPressed: () {},
-                                    color: Colors.pink,
-                                    icon: const Icon(Icons.delete_forever),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                        const Divider(),
-                        ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: listJenis.length,
-                          itemBuilder: (context, i) {
-                            return ListTile(
-                              title: Text((listJenis[i].value
-                                  as Map<String, dynamic>)['nama']),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    onPressed: () async {
-                                      await showDialog(
-                                          context: context,
-                                          builder: (context) {
-                                            return EditJenis(
-                                                jenis: listJenis[i]);
-                                          });
-                                      init();
-                                    },
-                                    icon: const Icon(Icons.edit),
-                                  ),
-                                  IconButton(
-                                    onPressed: () {},
-                                    color: Colors.pink,
-                                    icon: const Icon(Icons.delete_forever),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -376,9 +292,6 @@ class PrinterPageState extends State<PrinterPage> {
                     child: TextFormField(
                       textAlign: TextAlign.center,
                       controller: _kodePom,
-                      // onChanged: (value) {
-                      //   setState(() => _kodePom.text = value);
-                      // },
                       style: const TextStyle(fontWeight: FontWeight.bold),
                       decoration: const InputDecoration(
                         border: InputBorder.none,
@@ -392,10 +305,6 @@ class PrinterPageState extends State<PrinterPage> {
                     controller: _alamat,
                     minLines: 3,
                     maxLines: 5,
-
-                    // onChanged: (value) {
-                    //   setState(() => _alamat.text = value);
-                    // },
                     textAlign: TextAlign.center,
                     style: const TextStyle(fontSize: 14),
                     decoration: const InputDecoration(
@@ -414,9 +323,6 @@ class PrinterPageState extends State<PrinterPage> {
                       Expanded(
                         child: TextFormField(
                           controller: _shift,
-                          // onChanged: (value) {
-                          //   setState(() => _shift.text = value);
-                          // },
                           decoration: const InputDecoration(
                             border: InputBorder.none,
                             isCollapsed: true,
@@ -430,9 +336,6 @@ class PrinterPageState extends State<PrinterPage> {
                       Expanded(
                         child: TextFormField(
                           controller: _trans,
-                          // onChanged: (value) {
-                          //   setState(() => _trans.text = value);
-                          // },
                           decoration: const InputDecoration(
                             border: InputBorder.none,
                             isCollapsed: true,
@@ -450,9 +353,6 @@ class PrinterPageState extends State<PrinterPage> {
                       Expanded(
                         child: TextFormField(
                           controller: _tgl,
-                          // onChanged: (value) {
-                          //   setState(() => _tgl.text = value);
-                          // },
                           decoration: const InputDecoration(
                             border: InputBorder.none,
                             isCollapsed: true,
@@ -463,9 +363,6 @@ class PrinterPageState extends State<PrinterPage> {
                       Expanded(
                         child: TextFormField(
                           controller: _jam,
-                          // onChanged: (value) {
-                          //   setState(() => _jam.text = value);
-                          // },
                           decoration: const InputDecoration(
                             border: InputBorder.none,
                             isCollapsed: true,
@@ -488,9 +385,6 @@ class PrinterPageState extends State<PrinterPage> {
                         Expanded(
                           child: TextFormField(
                             controller: _pompa,
-                            // onChanged: (value) {
-                            //   setState(() => _pompa.text = value);
-                            // },
                             decoration: const InputDecoration(
                               border: InputBorder.none,
                               isCollapsed: true,
@@ -509,9 +403,6 @@ class PrinterPageState extends State<PrinterPage> {
                         Expanded(
                           child: TextFormField(
                             controller: _produk,
-                            // onChanged: (value) {
-                            //   setState(() => _produk.text = value);
-                            // },
                             decoration: const InputDecoration(
                               border: InputBorder.none,
                               isCollapsed: true,
@@ -530,9 +421,11 @@ class PrinterPageState extends State<PrinterPage> {
                         Expanded(
                           child: TextFormField(
                             controller: _harga,
-                            // onChanged: (value) {
-                            //   setState(() => _harga.text = value);
-                            // },
+                            onEditingComplete: () {
+                              var a = _harga.text.replaceAll(regNum, '');
+                              setState(() => harga = int.parse(a));
+                              hitungTotal();
+                            },
                             decoration: const InputDecoration(
                               border: InputBorder.none,
                               isCollapsed: true,
@@ -552,7 +445,6 @@ class PrinterPageState extends State<PrinterPage> {
                           child: TextFormField(
                             controller: _volume,
                             onChanged: (value) {
-                              // setState(() => _volume.text = val);
                               hitungTotal();
                             },
                             inputFormatters: [
@@ -582,9 +474,6 @@ class PrinterPageState extends State<PrinterPage> {
                         Expanded(
                           child: TextFormField(
                             controller: _total,
-                            // onChanged: (value) {
-                            //   setState(() => _total.text = value);
-                            // },
                             decoration: const InputDecoration(
                               border: InputBorder.none,
                               isCollapsed: true,
@@ -603,9 +492,6 @@ class PrinterPageState extends State<PrinterPage> {
                         Expanded(
                           child: TextFormField(
                             controller: _operator,
-                            // onChanged: (value) {
-                            //   setState(() => _operator.text = value);
-                            // },
                             decoration: const InputDecoration(
                               border: InputBorder.none,
                               isCollapsed: true,
@@ -623,9 +509,6 @@ class PrinterPageState extends State<PrinterPage> {
                   child: TextFormField(
                     controller: _total,
                     textAlign: TextAlign.right,
-                    // onChanged: (value) {
-                    //   setState(() => _total.text = value);
-                    // },
                     decoration: const InputDecoration(
                       border: InputBorder.none,
                     ),
@@ -641,9 +524,6 @@ class PrinterPageState extends State<PrinterPage> {
                         Expanded(
                           child: TextFormField(
                             controller: _plat,
-                            // onChanged: (value) {
-                            //   setState(() => _plat.text = value);
-                            // },
                             decoration: const InputDecoration(
                               border: InputBorder.none,
                               isCollapsed: true,
@@ -799,6 +679,7 @@ class AddDataPrinter extends StatefulWidget {
 }
 
 class AddDataPrinterState extends State<AddDataPrinter> {
+  final _title = TextEditingController();
   final _type = TextEditingController();
   final _kode = TextEditingController();
   final _nama = TextEditingController();
@@ -817,6 +698,13 @@ class AddDataPrinterState extends State<AddDataPrinter> {
             decoration: const InputDecoration(
                 labelText: 'Jenis', border: OutlineInputBorder()),
           ),
+          if (_type.text.toLowerCase() == 'spbu') Container(height: 8),
+          if (_type.text.toLowerCase() == 'spbu')
+            TextFormField(
+              controller: _title,
+              decoration: const InputDecoration(
+                  labelText: 'Title', border: OutlineInputBorder()),
+            ),
           Container(height: 8),
           TextFormField(
             controller: _kode,
@@ -857,6 +745,7 @@ class AddDataPrinterState extends State<AddDataPrinter> {
   save() async {
     if (_type.text.toLowerCase() == 'spbu') {
       await TounaDB.add(_type.text, {
+        'title': _title.text,
         'kode': _kode.text,
         'nama': _nama.text,
         'alamat': _alamat.text,
@@ -864,7 +753,7 @@ class AddDataPrinterState extends State<AddDataPrinter> {
       if (mounted) Navigator.pop(context);
     }
     if (_type.text.toLowerCase() == 'bensin') {
-      await TounaDB.add(_type.text, {
+      await TounaDB.add('jenis', {
         'nama': _nama.text,
         'harga': int.parse(_kode.text),
       });
@@ -917,12 +806,15 @@ class EditSPBU extends StatefulWidget {
 }
 
 class EditSPBUState extends State<EditSPBU> {
+  final _title = TextEditingController();
   final _kode = TextEditingController();
   final _nama = TextEditingController();
   final _alamat = TextEditingController();
   @override
   void initState() {
     super.initState();
+    _title.text =
+        (widget.spbu.value as Map<String, dynamic>)['title'].toString();
     _kode.text = (widget.spbu.value as Map<String, dynamic>)['kode'].toString();
     _nama.text = (widget.spbu.value as Map<String, dynamic>)['nama'].toString();
     _alamat.text =
@@ -935,6 +827,7 @@ class EditSPBUState extends State<EditSPBU> {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          TextFormField(controller: _title),
           TextFormField(controller: _kode),
           TextFormField(controller: _nama),
           TextFormField(
@@ -948,6 +841,7 @@ class EditSPBUState extends State<EditSPBU> {
         TextButton(
           onPressed: () async {
             var data = {
+              'title': _title.text,
               'kode': _kode.text,
               'nama': _nama.text,
               'alamat': _alamat.text,

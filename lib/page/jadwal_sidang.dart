@@ -249,13 +249,20 @@ class RekapJadwal extends StatefulWidget {
 class RekapJadwalState extends State<RekapJadwal> {
   List<SidangModel> lists = [];
   DateTimeRange? date;
+  int perkara = 0;
 
   rekap(DateTimeRange date) async {
     setState(() => lists = []);
     final data =
         await ApiTouna.rekapJadwal(date.start.formatDB, date.end.formatDB);
-
     setState(() => lists = data);
+    var perk = [];
+    for (var item in data) {
+      perk.add(item.perkara!.noPerkara);
+    }
+    var jml = perk.toSet().toList();
+
+    setState(() => perkara = jml.length);
   }
 
   @override
@@ -274,7 +281,7 @@ class RekapJadwalState extends State<RekapJadwal> {
                 Text(
                   lists.isEmpty
                       ? ''
-                      : 'Total Perkara : ${lists.length}\n\n${date == null ? '' : '${date!.start.fullday} - ${date!.end.fullday}'}',
+                      : 'Total Sidang : ${lists.length} dari $perkara Perkara\n\n${date == null ? '' : '${date!.start.fullday} - ${date!.end.fullday}'}',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 TextButton(
@@ -325,6 +332,8 @@ class RekapJadwalState extends State<RekapJadwal> {
                   },
                 ),
               )
+            else
+              const Expanded(child: Center(child: Text('Tidak Ada Data'))),
           ],
         ),
       ),
