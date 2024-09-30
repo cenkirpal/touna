@@ -18,6 +18,7 @@ class JadwalSidangState extends State<JadwalSidang> {
   DateTime date = DateTime.now();
   AppState appState = AppState.done;
   List<SidangModel> lists = [];
+  bool detail = false;
   @override
   void initState() {
     super.initState();
@@ -48,7 +49,30 @@ class JadwalSidangState extends State<JadwalSidang> {
     excel.rename(excel.sheets.keys.first, 'sidang');
     var sheet = excel['sidang'];
 
+    var headerStyle = exc.CellStyle(
+      verticalAlign: exc.VerticalAlign.Center,
+      horizontalAlign: exc.HorizontalAlign.Center,
+      textWrapping: exc.TextWrapping.WrapText,
+      topBorder: exc.Border(
+        borderStyle: exc.BorderStyle.Thin,
+        borderColorHex: exc.ExcelColor.black,
+      ),
+      bottomBorder: exc.Border(
+        borderStyle: exc.BorderStyle.Thin,
+        borderColorHex: exc.ExcelColor.black,
+      ),
+      rightBorder: exc.Border(
+        borderStyle: exc.BorderStyle.Thin,
+        borderColorHex: exc.ExcelColor.black,
+      ),
+      leftBorder: exc.Border(
+        borderStyle: exc.BorderStyle.Thin,
+        borderColorHex: exc.ExcelColor.black,
+      ),
+    );
     var borderStyle = exc.CellStyle(
+      verticalAlign: exc.VerticalAlign.Center,
+      textWrapping: exc.TextWrapping.WrapText,
       topBorder: exc.Border(
         borderStyle: exc.BorderStyle.Thin,
         borderColorHex: exc.ExcelColor.black,
@@ -70,41 +94,73 @@ class JadwalSidangState extends State<JadwalSidang> {
     var noT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0 + 5));
     noT.value = const exc.TextCellValue('No');
-    noT.cellStyle = borderStyle;
+    noT.cellStyle = headerStyle;
+
     var terdakwaT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: 0 + 5));
     terdakwaT.value = const exc.TextCellValue('Nama Terdakwa');
-    terdakwaT.cellStyle = borderStyle;
-    var lapasT = sheet
+    terdakwaT.cellStyle = headerStyle;
+
+    var agendaT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 0 + 5));
-    lapasT.value = const exc.TextCellValue('Agenda');
-    lapasT.cellStyle = borderStyle;
-    var pasalT = sheet
+    agendaT.value = const exc.TextCellValue('Agenda');
+    agendaT.cellStyle = headerStyle;
+
+    var jpuT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: 0 + 5));
-    pasalT.value = const exc.TextCellValue('JPU');
-    pasalT.cellStyle = borderStyle;
+    jpuT.value = const exc.TextCellValue('JPU');
+    jpuT.cellStyle = headerStyle;
+
+    var majelisT = sheet
+        .cell(exc.CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: 0 + 5));
+    majelisT.value = const exc.TextCellValue('Majelis');
+    majelisT.cellStyle = headerStyle;
+
+    var paniteraT = sheet
+        .cell(exc.CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: 0 + 5));
+    paniteraT.value = const exc.TextCellValue('Panitera');
+    paniteraT.cellStyle = headerStyle;
 
     for (var i = 0; i < lists.length; i++) {
       var no = sheet.cell(
           exc.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: i + 6));
       no.value = exc.TextCellValue('${i + 1}.');
       no.cellStyle = borderStyle;
+
       var terdakwa = sheet.cell(
           exc.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: i + 6));
       terdakwa.value =
           exc.TextCellValue(lists[i].perkara!.terdakwa.replaceAll(';', '\n'));
       terdakwa.cellStyle = borderStyle;
 
-      var lok = sheet.cell(
+      var agenda = sheet.cell(
           exc.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: i + 6));
-      lok.value = exc.TextCellValue(lists[i].agenda);
-      lok.cellStyle = borderStyle;
-      var pasal = sheet.cell(
+      agenda.value = exc.TextCellValue(lists[i].agenda);
+      agenda.cellStyle = borderStyle;
+
+      var jpu = sheet.cell(
           exc.CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: i + 6));
-      pasal.value =
+      jpu.value =
           exc.TextCellValue(lists[i].perkara!.jpu.replaceAll(';', '\n'));
-      pasal.cellStyle = borderStyle;
+      jpu.cellStyle = borderStyle;
+
+      var majelis = sheet.cell(
+          exc.CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: i + 6));
+      majelis.value =
+          exc.TextCellValue(lists[i].perkara!.majelis.replaceAll(';', '\n'));
+      majelis.cellStyle = borderStyle;
+
+      var panitera = sheet.cell(
+          exc.CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: i + 6));
+      panitera.value = exc.TextCellValue(lists[i].perkara!.panitera);
+      panitera.cellStyle = borderStyle;
     }
+    sheet.setColumnWidth(1, 35);
+    sheet.setColumnWidth(2, 35);
+    sheet.setColumnWidth(3, 35);
+    sheet.setColumnWidth(4, 35);
+    sheet.setColumnWidth(5, 35);
+    sheet.setRowHeight(5, 20);
 
     var dir = await getApplicationDocumentsDirectory();
     List<int>? bytes = excel.save();
@@ -145,6 +201,11 @@ class JadwalSidangState extends State<JadwalSidang> {
             icon: const Icon(Icons.download),
           ),
           IconButton(
+            onPressed: () => setState(() => detail = !detail),
+            color: detail ? Colors.blue : Colors.pink,
+            icon: const Icon(Icons.remove_red_eye),
+          ),
+          IconButton(
             onPressed: () => cek(),
             icon: const Icon(Icons.refresh),
           ),
@@ -163,7 +224,6 @@ class JadwalSidangState extends State<JadwalSidang> {
             : lists.isEmpty
                 ? const Center(child: Text('Tidak ada sidang hari ini'))
                 : ListView.builder(
-                    // shrinkWrap: true,
                     itemCount: lists.length,
                     itemBuilder: (context, i) {
                       return Card(
@@ -195,24 +255,18 @@ class JadwalSidangState extends State<JadwalSidang> {
                                 ),
                                 Container(width: 16),
                                 SizedBox(
-                                  width: 150,
+                                  width: 200,
                                   child: Text(lists[i].agenda),
                                 ),
                                 Container(width: 16),
                                 SizedBox(
                                   width: 250,
-                                  child: Text(lists[i]
-                                      .perkara!
-                                      .jpu
-                                      .replaceAll(';', '\n')),
+                                  child: detailText(lists[i].perkara!.jpu),
                                 ),
                                 Container(width: 16),
                                 SizedBox(
                                   width: 250,
-                                  child: Text(lists[i]
-                                      .perkara!
-                                      .majelis
-                                      .replaceAll(';', '\n')),
+                                  child: detailText(lists[i].perkara!.majelis),
                                 ),
                                 Container(width: 16),
                                 SizedBox(
@@ -228,6 +282,11 @@ class JadwalSidangState extends State<JadwalSidang> {
                   ),
       ),
     );
+  }
+
+  detailText(String text) {
+    if (!detail) return Text(text.split(';').first);
+    return Text(text.replaceAll(';', '\n'));
   }
 
   rekap() {
