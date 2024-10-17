@@ -166,7 +166,7 @@ class ApiTouna {
   }
 
   static Future editSidang(int id, String date, String agenda,
-      {String? ket}) async {
+      {String? ket, String? keterangan}) async {
     final request = Dio().post(
       'https://cenkirpal.com/api/touna/edit-sidang',
       options: Options(headers: {
@@ -178,6 +178,7 @@ class ApiTouna {
         'date': date,
         'agenda': agenda,
         'ket': ket,
+        'keterangan': keterangan,
       },
     );
 

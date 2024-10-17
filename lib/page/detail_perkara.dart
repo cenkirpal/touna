@@ -221,6 +221,7 @@ class EditSidangState extends State<EditSidang> {
   final _form = GlobalKey<FormState>();
   final _date = TextEditingController();
   final _agenda = TextEditingController();
+  final _keterangan = TextEditingController();
 
   @override
   void initState() {
@@ -232,6 +233,7 @@ class EditSidangState extends State<EditSidang> {
     setState(() {
       _date.text = widget.sidang.date;
       _agenda.text = widget.sidang.agenda;
+      _keterangan.text = widget.sidang.keterangan ?? '';
     });
   }
 
@@ -267,6 +269,10 @@ class EditSidangState extends State<EditSidang> {
               controller: _agenda,
               decoration: const InputDecoration(labelText: 'Agenda'),
             ),
+            TextFormField(
+              controller: _keterangan,
+              decoration: const InputDecoration(labelText: 'Keterangan'),
+            ),
           ],
         ),
       ),
@@ -276,7 +282,8 @@ class EditSidangState extends State<EditSidang> {
             if (!_form.currentState!.validate()) return;
 
             await ApiTouna.editSidang(
-                widget.sidang.id!, _date.text, _agenda.text);
+                widget.sidang.id!, _date.text, _agenda.text,
+                keterangan: _keterangan.text);
             if (context.mounted) Navigator.pop(context);
           },
           child: const Text('Save'),

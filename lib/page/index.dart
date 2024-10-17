@@ -1,4 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'package:touna/api/api.dart';
 import 'package:touna/api/response.dart';
 import 'package:touna/main.dart';
@@ -9,6 +12,7 @@ import 'package:touna/page/drawer.dart';
 import 'package:touna/page/edit_perkara.dart';
 import 'package:touna/page/jadwal_sidang.dart';
 import 'package:touna/util/date.dart';
+import 'package:excel/excel.dart' as exc;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.title});
@@ -45,7 +49,7 @@ class HomePageState extends State<HomePage> {
         error = d.msg ?? 'Unknown Error';
         appState = AppState.error;
       } else {
-        lists = d.result as List<PerkaraModel>;
+        lists = d.result == null ? [] : d.result as List<PerkaraModel>;
         appState = AppState.done;
       }
     });
@@ -61,6 +65,200 @@ class HomePageState extends State<HomePage> {
     fetch();
   }
 
+  download() async {
+    var excel = exc.Excel.createExcel();
+    excel.rename(excel.sheets.keys.first, 'perkara');
+    var sheet = excel['perkara'];
+
+    var headerStyle = exc.CellStyle(
+      bold: true,
+      verticalAlign: exc.VerticalAlign.Center,
+      horizontalAlign: exc.HorizontalAlign.Center,
+      textWrapping: exc.TextWrapping.WrapText,
+      topBorder: exc.Border(
+        borderStyle: exc.BorderStyle.Thin,
+        borderColorHex: exc.ExcelColor.black,
+      ),
+      bottomBorder: exc.Border(
+        borderStyle: exc.BorderStyle.Thin,
+        borderColorHex: exc.ExcelColor.black,
+      ),
+      rightBorder: exc.Border(
+        borderStyle: exc.BorderStyle.Thin,
+        borderColorHex: exc.ExcelColor.black,
+      ),
+      leftBorder: exc.Border(
+        borderStyle: exc.BorderStyle.Thin,
+        borderColorHex: exc.ExcelColor.black,
+      ),
+    );
+
+    var noT = sheet
+        .cell(exc.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0 + 5));
+    noT.value = const exc.TextCellValue('No');
+    noT.cellStyle = headerStyle;
+
+    var perkaraT = sheet
+        .cell(exc.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: 0 + 5));
+    perkaraT.value = const exc.TextCellValue('Nomor Perkara');
+    perkaraT.cellStyle = headerStyle;
+
+    var terdakwaT = sheet
+        .cell(exc.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 0 + 5));
+    terdakwaT.value = const exc.TextCellValue('Nama Terdakwa');
+    terdakwaT.cellStyle = headerStyle;
+
+    var jpuT = sheet
+        .cell(exc.CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: 0 + 5));
+    jpuT.value = const exc.TextCellValue('JPU');
+    jpuT.cellStyle = headerStyle;
+
+    var putusanT = sheet
+        .cell(exc.CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: 0 + 5));
+    putusanT.value = const exc.TextCellValue('Putusan');
+    putusanT.cellStyle = headerStyle;
+
+    int next = 0;
+    int maxSidang = 0;
+    for (var i = 0; i < lists.length; i++) {
+      var borderStyle = exc.CellStyle(
+        bold: true,
+        backgroundColorHex: (lists[i].putusan ?? false)
+            ? exc.ExcelColor.red200
+            : exc.ExcelColor.green100,
+        verticalAlign: exc.VerticalAlign.Center,
+        textWrapping: exc.TextWrapping.WrapText,
+        topBorder: exc.Border(
+          borderStyle: exc.BorderStyle.Thin,
+          borderColorHex: exc.ExcelColor.black,
+        ),
+        bottomBorder: exc.Border(
+          borderStyle: exc.BorderStyle.Thin,
+          borderColorHex: exc.ExcelColor.black,
+        ),
+        rightBorder: exc.Border(
+          borderStyle: exc.BorderStyle.Thin,
+          borderColorHex: exc.ExcelColor.black,
+        ),
+        leftBorder: exc.Border(
+          borderStyle: exc.BorderStyle.Thin,
+          borderColorHex: exc.ExcelColor.black,
+        ),
+      );
+
+      var perkara = sheet.cell(exc.CellIndex.indexByColumnRow(
+          columnIndex: 1, rowIndex: (i + next) + 6));
+      perkara.value = exc.TextCellValue(lists[i].noPerkara);
+      perkara.cellStyle = borderStyle;
+
+      var terdakwa = sheet.cell(exc.CellIndex.indexByColumnRow(
+          columnIndex: 2, rowIndex: (i + next) + 6));
+      terdakwa.value =
+          exc.TextCellValue(lists[i].terdakwa.replaceAll(';', '\n'));
+      terdakwa.cellStyle = borderStyle;
+
+      var jpu = sheet.cell(exc.CellIndex.indexByColumnRow(
+          columnIndex: 3, rowIndex: (i + next) + 6));
+      jpu.value = exc.TextCellValue(lists[i].jpu.replaceAll(';', '\n'));
+      jpu.cellStyle = borderStyle;
+
+      var putusan = sheet.cell(exc.CellIndex.indexByColumnRow(
+          columnIndex: 4, rowIndex: (i + next) + 6));
+      putusan.value =
+          exc.TextCellValue(lists[i].putusan == true ? "sudah putus" : "");
+      putusan.cellStyle = borderStyle;
+
+      var no = sheet.cell(exc.CellIndex.indexByColumnRow(
+          columnIndex: 0, rowIndex: (i + next) + 6));
+      no.value = exc.TextCellValue('${i + 1}.');
+      no.cellStyle = exc.CellStyle(
+        bold: true,
+        backgroundColorHex: (lists[i].putusan ?? false)
+            ? exc.ExcelColor.red200
+            : exc.ExcelColor.green100,
+        verticalAlign: exc.VerticalAlign.Center,
+        horizontalAlign: exc.HorizontalAlign.Center,
+        textWrapping: exc.TextWrapping.WrapText,
+        topBorder: exc.Border(
+          borderStyle: exc.BorderStyle.Thin,
+          borderColorHex: exc.ExcelColor.black,
+        ),
+        bottomBorder: exc.Border(
+          borderStyle: exc.BorderStyle.Thin,
+          borderColorHex: exc.ExcelColor.black,
+        ),
+        rightBorder: exc.Border(
+          borderStyle: exc.BorderStyle.Thin,
+          borderColorHex: exc.ExcelColor.black,
+        ),
+        leftBorder: exc.Border(
+          borderStyle: exc.BorderStyle.Thin,
+          borderColorHex: exc.ExcelColor.black,
+        ),
+      );
+      if (lists[i].sidang!.isNotEmpty) {
+        var listSidang = lists[i].sidang!.reversed.toList();
+        for (var j = 0; j < listSidang.length; j++) {
+          var sidangStyleUp = exc.CellStyle(
+            backgroundColorHex: exc.ExcelColor.orange100,
+            verticalAlign: exc.VerticalAlign.Center,
+            textWrapping: exc.TextWrapping.WrapText,
+            topBorder: exc.Border(
+              borderStyle: exc.BorderStyle.Thin,
+              borderColorHex: exc.ExcelColor.black,
+            ),
+            rightBorder: exc.Border(
+              borderStyle: exc.BorderStyle.Thin,
+              borderColorHex: exc.ExcelColor.black,
+            ),
+            leftBorder: exc.Border(
+              borderStyle: exc.BorderStyle.Thin,
+              borderColorHex: exc.ExcelColor.black,
+            ),
+          );
+          var sidangStyleDown = exc.CellStyle(
+            backgroundColorHex: exc.ExcelColor.orange100,
+            verticalAlign: exc.VerticalAlign.Center,
+            textWrapping: exc.TextWrapping.WrapText,
+            bottomBorder: exc.Border(
+              borderStyle: exc.BorderStyle.Thin,
+              borderColorHex: exc.ExcelColor.black,
+            ),
+            rightBorder: exc.Border(
+              borderStyle: exc.BorderStyle.Thin,
+              borderColorHex: exc.ExcelColor.black,
+            ),
+            leftBorder: exc.Border(
+              borderStyle: exc.BorderStyle.Thin,
+              borderColorHex: exc.ExcelColor.black,
+            ),
+          );
+          var sidang = listSidang[j];
+          var date = sheet.cell(exc.CellIndex.indexByColumnRow(
+              columnIndex: j, rowIndex: (i + next) + 6 + 1));
+          date.value = exc.TextCellValue(sidang.date);
+          date.cellStyle = sidangStyleUp;
+
+          var agenda = sheet.cell(exc.CellIndex.indexByColumnRow(
+              columnIndex: j, rowIndex: (i + next) + 6 + 2));
+          agenda.value = exc.TextCellValue(sidang.agenda);
+          agenda.cellStyle = sidangStyleDown;
+          if (j >= maxSidang) maxSidang = j + 1;
+          // if (j == maxSidang) maxSidang = j + 1;
+        }
+        next += 2;
+      }
+    }
+    for (var i = 0; i < maxSidang; i++) {
+      sheet.setColumnWidth(i, 35);
+    }
+
+    var dir = await getApplicationDocumentsDirectory();
+    List<int>? bytes = excel.save();
+    File(path.join(dir.path, 'perkara touna.xlsx'))
+        .writeAsBytesSync(bytes!, mode: FileMode.write);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,10 +266,6 @@ class HomePageState extends State<HomePage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
-        // leading: IconButton(
-        //   onPressed: () {},
-        //   icon: Icon(Icons.menu),
-        // ),
         actions: [
           Container(
             width: 200,
@@ -108,8 +302,22 @@ class HomePageState extends State<HomePage> {
             color: detail ? Colors.blue : Colors.red,
             icon: const Icon(Icons.remove_red_eye),
           ),
-          IconButton(onPressed: () => insert(), icon: const Icon(Icons.add)),
-          IconButton(onPressed: () => fetch(), icon: const Icon(Icons.refresh))
+          PopupMenuButton(itemBuilder: (context) {
+            return [
+              PopupMenuItem(
+                onTap: () => insert(),
+                child: const Text('Tambah Data'),
+              ),
+              PopupMenuItem(
+                onTap: () => fetch(),
+                child: const Text('Refresh Data'),
+              ),
+              PopupMenuItem(
+                onTap: () => download(),
+                child: const Text('Download Data'),
+              ),
+            ];
+          }),
         ],
       ),
       body: appState == AppState.loading
@@ -341,7 +549,7 @@ class HomePageState extends State<HomePage> {
 
   Widget sidang(List<SidangModel> data) {
     return Container(
-      width: double.infinity,
+      width: MediaQuery.of(context).size.width,
       decoration: BoxDecoration(
           color: Colors.green.shade400,
           borderRadius: const BorderRadius.only(
@@ -351,39 +559,37 @@ class HomePageState extends State<HomePage> {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: data
               .toList()
               .asMap()
               .map((key, value) => MapEntry(
                   key,
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(4, 4, 18, 4),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${key + 1}',
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        Container(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(DateTime.parse(value.date).fullday),
-                            Text(
-                              value.agenda,
-                              style: key != 0
-                                  ? null
-                                  : TextStyle(
-                                      color: colorSidang(value),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${key + 1}',
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      Container(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(DateTime.parse(value.date).fullday),
+                          Text(
+                            value.agenda,
+                            style: key != 0
+                                ? null
+                                : TextStyle(
+                                    color: colorSidang(value),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ],
                   )))
               .values
               .toList(),
