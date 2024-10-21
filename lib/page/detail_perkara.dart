@@ -61,87 +61,107 @@ class DetailPerkaraState extends State<DetailPerkara> {
       ),
       body: Container(
         padding: const EdgeInsets.all(8),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Terdakwa : '),
-                  const Divider(),
-                  Text(
-                    perkara.terdakwa.replaceAll(';', '\n'),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+        child: Column(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Terdakwa : '),
+                const Divider(),
+                Text(
+                  perkara.terdakwa.replaceAll(';', '\n'),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
-                  Container(height: 25),
-                  const Text('JPU : '),
-                  const Divider(),
-                  Text(
-                    perkara.jpu.replaceAll(';', '\n'),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Container(height: 25),
-                  const Text('Majelis : '),
-                  const Divider(),
-                  Text(
-                    perkara.majelis.replaceAll(';', '\n'),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              Container(height: 25),
-              listSidang == null
-                  ? Container()
-                  : appState == AppState.loading
-                      ? const Center(child: LinearProgressIndicator())
-                      : listSidang!.isEmpty
-                          ? Container()
-                          : ListView.builder(
+                ),
+                Container(height: 25),
+                const Text('JPU : '),
+                const Divider(),
+                Text(
+                  perkara.jpu.replaceAll(';', '\n'),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Container(height: 25),
+                const Text('Majelis : '),
+                const Divider(),
+                Text(
+                  perkara.majelis.replaceAll(';', '\n'),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            Container(height: 25),
+            listSidang == null
+                ? Container()
+                : appState == AppState.loading
+                    ? const Center(child: LinearProgressIndicator())
+                    : listSidang!.isEmpty
+                        ? Container()
+                        : Expanded(
+                            child: ListView.builder(
                               itemCount: listSidang!.length,
                               shrinkWrap: true,
                               itemBuilder: (context, i) {
                                 var sidang = listSidang![i];
-                                return ListTile(
-                                  leading: Text('${i + 1}'),
-                                  title:
-                                      Text(DateTime.parse(sidang.date).fullday),
-                                  subtitle: Text(sidang.agenda),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        onPressed: () async {
-                                          await showDialog(
-                                              context: context,
-                                              builder: (context) {
-                                                return EditSidang(
-                                                  perkara: widget.perkara,
-                                                  sidang: listSidang![i],
-                                                );
-                                              });
-                                          reload();
-                                        },
-                                        icon: const Icon(Icons.edit),
-                                      ),
-                                      IconButton(
-                                        onPressed: () async {
-                                          await ApiTouna.deleteSidang(
-                                              listSidang![i].id!);
-                                          reload();
-                                        },
-                                        color: Colors.pink,
-                                        icon: const Icon(Icons.delete_forever),
-                                      ),
-                                    ],
+                                return Card(
+                                  child: ListTile(
+                                    leading: Text('${i + 1}'),
+                                    title: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(DateTime.parse(sidang.date)
+                                            .fullday),
+                                        if (sidang.keterangan != null)
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.red[200],
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            padding: const EdgeInsets.fromLTRB(
+                                                16, 8, 16, 8),
+                                            child: Text(sidang.keterangan!),
+                                          )
+                                      ],
+                                    ),
+                                    subtitle: Text(sidang.agenda),
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          onPressed: () async {
+                                            await showDialog(
+                                                context: context,
+                                                builder: (context) {
+                                                  return EditSidang(
+                                                    perkara: widget.perkara,
+                                                    sidang: listSidang![i],
+                                                  );
+                                                });
+                                            reload();
+                                          },
+                                          icon: const Icon(Icons.edit),
+                                        ),
+                                        IconButton(
+                                          onPressed: () async {
+                                            await ApiTouna.deleteSidang(
+                                                listSidang![i].id!);
+                                            reload();
+                                          },
+                                          color: Colors.pink,
+                                          icon:
+                                              const Icon(Icons.delete_forever),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 );
                               },
                             ),
-            ],
-          ),
+                          ),
+          ],
         ),
       ),
     );

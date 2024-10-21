@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:touna/api/api.dart';
 import 'package:touna/main.dart';
 import 'package:touna/model/sidang_model.dart';
+import 'package:touna/page/detail_perkara.dart';
 import 'package:touna/util/date.dart';
 
 class JadwalSidang extends StatefulWidget {
@@ -223,62 +224,78 @@ class JadwalSidangState extends State<JadwalSidang> {
               )
             : lists.isEmpty
                 ? const Center(child: Text('Tidak ada sidang hari ini'))
-                : ListView.builder(
-                    itemCount: lists.length,
-                    itemBuilder: (context, i) {
-                      return Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                SizedBox(
-                                  width: 30,
-                                  child: Text(
-                                    '${i + 1}',
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold),
+                : SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: ListView.builder(
+                      itemCount: lists.length,
+                      shrinkWrap: true,
+                      itemBuilder: (context, i) {
+                        return Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  SizedBox(
+                                    width: 30,
+                                    child: Text(
+                                      '${i + 1}',
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
                                   ),
-                                ),
-                                SizedBox(
-                                  width: 300,
-                                  child: Text(
-                                    lists[i]
-                                        .perkara!
-                                        .terdakwa
-                                        .replaceAll(';', '\n'),
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold),
+                                  SizedBox(
+                                    width: 300,
+                                    child: Text(
+                                      lists[i]
+                                          .perkara!
+                                          .terdakwa
+                                          .replaceAll(';', '\n'),
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
                                   ),
-                                ),
-                                Container(width: 16),
-                                SizedBox(
-                                  width: 200,
-                                  child: Text(lists[i].agenda),
-                                ),
-                                Container(width: 16),
-                                SizedBox(
-                                  width: 250,
-                                  child: detailText(lists[i].perkara!.jpu),
-                                ),
-                                Container(width: 16),
-                                SizedBox(
-                                  width: 250,
-                                  child: detailText(lists[i].perkara!.majelis),
-                                ),
-                                Container(width: 16),
-                                SizedBox(
-                                  width: 250,
-                                  child: Text(lists[i].perkara!.panitera),
-                                ),
-                              ],
+                                  Container(width: 16),
+                                  SizedBox(
+                                    width: 200,
+                                    child: Text(lists[i].agenda),
+                                  ),
+                                  Container(width: 16),
+                                  SizedBox(
+                                    width: 250,
+                                    child: detailText(lists[i].perkara!.jpu),
+                                  ),
+                                  Container(width: 16),
+                                  SizedBox(
+                                    width: 250,
+                                    child:
+                                        detailText(lists[i].perkara!.majelis),
+                                  ),
+                                  Container(width: 16),
+                                  SizedBox(
+                                    width: 250,
+                                    child: Text(lists[i].perkara!.panitera),
+                                  ),
+                                  Container(width: 16),
+                                  IconButton(
+                                    onPressed: () {
+                                      Navigator.push(context,
+                                          MaterialPageRoute(builder: (context) {
+                                        return DetailPerkara(
+                                            perkara: lists[i].perkara!);
+                                      }));
+                                    },
+                                    icon: const Icon(Icons.remove_red_eye),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
       ),
     );
