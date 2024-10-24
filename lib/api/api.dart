@@ -190,6 +190,27 @@ class ApiTouna {
     }
   }
 
+  static Future ketSidang(int id, bool ket) async {
+    final request = Dio().post(
+      'https://cenkirpal.com/api/touna/ket-sidang',
+      options: Options(headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      }),
+      data: {'id': id, 'ket': ket},
+    );
+
+    try {
+      await request;
+    } on DioException catch (e) {
+      error(e.response?.data.toString());
+      error(e.response?.statusMessage);
+      error(e.response?.statusCode.toString());
+      error(e.response?.data);
+      throw Exception('Error Editing');
+    }
+  }
+
   static Future deleteSidang(int id) async {
     final request = Dio().post(
       'https://cenkirpal.com/api/touna/delete-sidang',
@@ -227,6 +248,10 @@ class ApiTouna {
       return list;
     } on DioException catch (e) {
       error(e.response?.data.toString());
+      error(e.response?.data.toString());
+      error(e.response?.statusMessage);
+      error(e.response?.statusCode.toString());
+      error(e.response?.data);
       throw Exception('Error');
     }
   }

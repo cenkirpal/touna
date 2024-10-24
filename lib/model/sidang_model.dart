@@ -4,7 +4,7 @@ class SidangModel {
   int? id;
   String date;
   String agenda;
-  String? ket;
+  bool? ket;
   String? keterangan;
   PerkaraModel? perkara;
   SidangModel({
@@ -20,7 +20,7 @@ class SidangModel {
       id: json['id'],
       date: json['date'],
       agenda: json['agenda'],
-      ket: json['ket'],
+      ket: json['ket'] == '0' ? false : true,
       keterangan: json['keterangan'],
       perkara: json['perkara'] == null
           ? null

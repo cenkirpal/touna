@@ -60,34 +60,56 @@ class DetailPerkaraState extends State<DetailPerkara> {
         ],
       ),
       body: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
         child: Column(
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Terdakwa : '),
-                const Divider(),
-                Text(
-                  perkara.terdakwa.replaceAll(';', '\n'),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                SizedBox(
+                  width: MediaQuery.of(context).size.width / 2.5,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Terdakwa : '),
+                      const Divider(endIndent: 300),
+                      Text(
+                        perkara.terdakwa.replaceAll(';', '\n'),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Container(height: 25),
+                      const Text('JPU : '),
+                      const Divider(endIndent: 300),
+                      Text(
+                        perkara.jpu.replaceAll(';', '\n'),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
                   ),
                 ),
-                Container(height: 25),
-                const Text('JPU : '),
-                const Divider(),
-                Text(
-                  perkara.jpu.replaceAll(';', '\n'),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Container(height: 25),
-                const Text('Majelis : '),
-                const Divider(),
-                Text(
-                  perkara.majelis.replaceAll(';', '\n'),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width / 2.5,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Majelis : '),
+                      const Divider(endIndent: 300),
+                      Text(
+                        perkara.majelis.replaceAll(';', '\n'),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Container(height: 25),
+                      const Text('Panitera : '),
+                      const Divider(endIndent: 300),
+                      Text(
+                        perkara.panitera,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

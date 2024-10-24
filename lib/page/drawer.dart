@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:touna/page/index.dart';
 import 'package:touna/page/printer.dart';
 
 class DrawerWidget extends StatefulWidget {
@@ -39,6 +40,17 @@ class DrawerState extends State<DrawerWidget> {
           Expanded(
             child: Column(
               children: [
+                Card(
+                  child: ListTile(
+                    onTap: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) {
+                        return const HomePage(title: 'Jadwal Sidang KN Touna');
+                      }));
+                    },
+                    title: const Text('Data Perkara'),
+                  ),
+                ),
                 if (show)
                   Card(
                     child: ListTile(

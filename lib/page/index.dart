@@ -346,7 +346,6 @@ class HomePageState extends State<HomePage> {
                       ),
                       shadowColor: Colors.pink,
                       surfaceTintColor: Colors.pink,
-                      color: data.putusan == true ? Colors.pink[200] : null,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -538,7 +537,8 @@ class HomePageState extends State<HomePage> {
                               ),
                             ),
                           if (data.sidang != null)
-                            sidang(data.sidang!.reversed.toList()),
+                            sidang(data.sidang!.reversed.toList(),
+                                data.putusan ?? false),
                         ],
                       ),
                     );
@@ -547,11 +547,12 @@ class HomePageState extends State<HomePage> {
     );
   }
 
-  Widget sidang(List<SidangModel> data) {
+  Widget sidang(List<SidangModel> data, bool putus) {
     return Container(
       width: MediaQuery.of(context).size.width,
+      padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-          color: Colors.green.shade400,
+          color: putus ? Colors.pink[300] : Colors.green[300],
           borderRadius: const BorderRadius.only(
             bottomLeft: Radius.circular(8),
             bottomRight: Radius.circular(8),
@@ -565,31 +566,34 @@ class HomePageState extends State<HomePage> {
               .asMap()
               .map((key, value) => MapEntry(
                   key,
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${key + 1}',
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      Container(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(DateTime.parse(value.date).fullday),
-                          Text(
-                            value.agenda,
-                            style: key != 0
-                                ? null
-                                : TextStyle(
-                                    color: colorSidang(value),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${key + 1}',
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        Container(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(DateTime.parse(value.date).fullday),
+                            Text(
+                              value.agenda,
+                              style: key != 0
+                                  ? null
+                                  : TextStyle(
+                                      color: colorSidang(value),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   )))
               .values
               .toList(),

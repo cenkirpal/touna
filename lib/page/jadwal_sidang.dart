@@ -7,6 +7,7 @@ import 'package:touna/api/api.dart';
 import 'package:touna/main.dart';
 import 'package:touna/model/sidang_model.dart';
 import 'package:touna/page/detail_perkara.dart';
+import 'package:touna/page/drawer.dart';
 import 'package:touna/util/date.dart';
 
 class JadwalSidang extends StatefulWidget {
@@ -216,6 +217,7 @@ class JadwalSidangState extends State<JadwalSidang> {
           ),
         ],
       ),
+      drawer: const DrawerWidget(),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: appState == AppState.loading
@@ -231,6 +233,7 @@ class JadwalSidangState extends State<JadwalSidang> {
                       shrinkWrap: true,
                       itemBuilder: (context, i) {
                         return Card(
+                          color: lists[i].ket! ? Colors.green[300] : null,
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: SingleChildScrollView(
@@ -288,6 +291,14 @@ class JadwalSidangState extends State<JadwalSidang> {
                                       }));
                                     },
                                     icon: const Icon(Icons.remove_red_eye),
+                                  ),
+                                  IconButton(
+                                    onPressed: () async {
+                                      await ApiTouna.ketSidang(
+                                          lists[i].id!, !lists[i].ket!);
+                                      await cek();
+                                    },
+                                    icon: const Icon(Icons.check),
                                   ),
                                 ],
                               ),
@@ -553,7 +564,17 @@ class RekapJadwalState extends State<RekapJadwal> {
                         ),
                         title: Text(
                             lists[i].perkara!.terdakwa.replaceAll(';', '\n')),
-                        trailing: Text(DateTime.parse(lists[i].date).fullday),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 150,
+                              child: Text(lists[i].agenda),
+                            ),
+                            Container(width: 16),
+                            Text(DateTime.parse(lists[i].date).fullday),
+                          ],
+                        ),
                       ),
                     );
                   },

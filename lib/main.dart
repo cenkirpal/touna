@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:touna/page/index.dart';
-import 'package:touna/page/mobile/index.dart';
+import 'package:touna/page/jadwal_sidang.dart';
+import 'package:touna/page/mobile/jadwal.dart';
 
-void main()  {
- runApp(const MyApp());
+void main() {
+  runApp(const MyApp());
 }
 
 enum AppState { done, loading, error }
@@ -26,8 +26,10 @@ class MyApp extends StatelessWidget {
 
   home() {
     if (Platform.isAndroid) {
-      return const HomeMobilePage(title: 'Jadwal Sidang KN Touna');
+      return const JadwalMobile();
+      // return const HomeMobilePage(title: 'Jadwal Sidang KN Touna');
     }
-    return const HomePage(title: 'Jadwal Sidang KN Touna');
+    return const JadwalSidang();
+    // return const HomePage(title: 'Jadwal Sidang KN Touna');
   }
 }
