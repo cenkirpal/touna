@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:touna/api/api.dart';
 import 'package:touna/api/response.dart';
@@ -162,6 +161,7 @@ class HomeMobilePageHomePageState extends State<HomeMobilePage> {
                                     PopupMenuItem(
                                       onTap: () {
                                         Future.delayed(Duration.zero, () async {
+                                          if (!context.mounted) return;
                                           showDialog(
                                               context: context,
                                               builder: (context) {
@@ -420,8 +420,7 @@ class AddPerkaraState extends State<AddPerkara> {
         TextButton(
           onPressed: () async {
             if (!_form.currentState!.validate()) return;
-            
-           
+
             if (context.mounted) Navigator.pop(context);
           },
           child: const Text('Simpan'),

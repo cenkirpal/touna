@@ -404,6 +404,7 @@ class HomePageState extends State<HomePage> {
                                         onTap: () {
                                           Future.delayed(Duration.zero,
                                               () async {
+                                            if (!context.mounted) return;
                                             showDialog(
                                                 context: context,
                                                 builder: (context) {
@@ -432,6 +433,7 @@ class HomePageState extends State<HomePage> {
                                         onTap: () {
                                           Future.delayed(Duration.zero,
                                               () async {
+                                            if (!context.mounted) return;
                                             await showDialog(
                                                 context: context,
                                                 builder: (context) {

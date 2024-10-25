@@ -29,7 +29,12 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
+/android/
 /build/
+/ios/
+/macos/
+/web/
+/windows/
 
 # Symbolication related
 app.*.symbols
@@ -38,10 +43,4 @@ app.*.symbols
 app.*.map.json
 
 # Android Studio will place build artifacts here
-/android
-/macos
-/windows
-/web
-/linux
-/ios
-./pubspec.lock
+pubspec.lock
