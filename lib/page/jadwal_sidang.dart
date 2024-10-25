@@ -1,14 +1,19 @@
 import 'dart:io';
+import 'dart:ui' as ui;
+import 'dart:typed_data';
 import 'package:excel/excel.dart' as exc;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:screenshot/screenshot.dart';
 import 'package:touna/api/api.dart';
 import 'package:touna/main.dart';
 import 'package:touna/model/sidang_model.dart';
 import 'package:touna/page/detail_perkara.dart';
 import 'package:touna/page/drawer.dart';
 import 'package:touna/util/date.dart';
+import 'package:widgets_to_image/widgets_to_image.dart';
 
 class JadwalSidang extends StatefulWidget {
   const JadwalSidang({super.key});
@@ -18,9 +23,13 @@ class JadwalSidang extends StatefulWidget {
 
 class JadwalSidangState extends State<JadwalSidang> {
   DateTime date = DateTime.now();
+  final controller = ScreenshotController();
   AppState appState = AppState.done;
   List<SidangModel> lists = [];
   bool detail = false;
+  Uint8List? bytes;
+
+  final _key = GlobalKey();
   @override
   void initState() {
     super.initState();
@@ -170,6 +179,49 @@ class JadwalSidangState extends State<JadwalSidang> {
         .writeAsBytesSync(bytes!, mode: FileMode.write);
   }
 
+  capture(BuildContext context) async {
+    // bytes = await controller.capture();
+    // var dir = await getApplicationDocumentsDirectory();
+    // var des = Directory(join(dir.path, 'sidang'));
+    // des.create(recursive: true);
+    // if (bytes != null) {
+    //   var file = await File(join(des.path, '${date.formatDB}.jpg')).create();
+    //   file.writeAsBytesSync(bytes!);
+    // }
+
+    // final byte = await captures();
+    // print(byte == null);
+    // if (byte == null) return;
+    var dir = await getApplicationDocumentsDirectory();
+    var des = Directory(join(dir.path, 'sidang'));
+    des.create(recursive: true);
+    // if (byte != null) {
+    //   var file = await File(join(des.path, '${date.formatDB}.png')).create();
+    //   file.writeAsBytesSync(byte);
+    // }
+
+    // var byte =
+    //     await controller.capture(delay: const Duration(milliseconds: 10));
+    var byte = await controller.captureFromLongWidget(
+      InheritedTheme.captureAll(context, jadwalWidget(context)),
+    );
+    if (byte != null) {
+      var file = await File(join(des.path, '${date.formatDB}.png')).create();
+      file.writeAsBytesSync(byte);
+    }
+  }
+
+  captures() async {
+    final cont = _key.currentContext;
+    if (cont == null) return null;
+    final boundary = cont.findRenderObject() as RenderRepaintBoundary?;
+    if (boundary == null) return null;
+    ui.Image image = await boundary.toImage();
+    final byte = await image.toByteData(format: ui.ImageByteFormat.png);
+    if (byte == null) return null;
+    return byte.buffer.asUint8List();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -212,102 +264,192 @@ class JadwalSidangState extends State<JadwalSidang> {
             icon: const Icon(Icons.refresh),
           ),
           IconButton(
+            onPressed: () => capture(context),
+            icon: const Icon(Icons.camera_alt),
+          ),
+          IconButton(
             onPressed: () => rekap(),
             icon: const Icon(Icons.list),
           ),
         ],
       ),
       drawer: const DrawerWidget(),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: appState == AppState.loading
-            ? const Center(
-                child: SizedBox(width: 200, child: LinearProgressIndicator()),
-              )
-            : lists.isEmpty
-                ? const Center(child: Text('Tidak ada sidang hari ini'))
-                : SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    child: ListView.builder(
-                      itemCount: lists.length,
-                      shrinkWrap: true,
-                      itemBuilder: (context, i) {
-                        return Card(
-                          color: lists[i].ket! ? Colors.green[300] : null,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  SizedBox(
-                                    width: 30,
-                                    child: Text(
-                                      '${i + 1}',
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 300,
-                                    child: Text(
-                                      lists[i]
-                                          .perkara!
-                                          .terdakwa
-                                          .replaceAll(';', '\n'),
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                  Container(width: 16),
-                                  SizedBox(
-                                    width: 200,
-                                    child: Text(lists[i].agenda),
-                                  ),
-                                  Container(width: 16),
-                                  SizedBox(
-                                    width: 250,
-                                    child: detailText(lists[i].perkara!.jpu),
-                                  ),
-                                  Container(width: 16),
-                                  SizedBox(
-                                    width: 250,
-                                    child:
-                                        detailText(lists[i].perkara!.majelis),
-                                  ),
-                                  Container(width: 16),
-                                  SizedBox(
-                                    width: 250,
-                                    child: Text(lists[i].perkara!.panitera),
-                                  ),
-                                  Container(width: 16),
-                                  IconButton(
-                                    onPressed: () {
-                                      Navigator.push(context,
-                                          MaterialPageRoute(builder: (context) {
-                                        return DetailPerkara(
-                                            perkara: lists[i].perkara!);
-                                      }));
-                                    },
-                                    icon: const Icon(Icons.remove_red_eye),
-                                  ),
-                                  IconButton(
-                                    onPressed: () async {
-                                      await ApiTouna.ketSidang(
-                                          lists[i].id!, !lists[i].ket!);
-                                      await cek();
-                                    },
-                                    icon: const Icon(Icons.check),
-                                  ),
-                                ],
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: appState == AppState.loading
+              ? const Center(
+                  child: SizedBox(width: 200, child: LinearProgressIndicator()),
+                )
+              : lists.isEmpty
+                  ? const Center(child: Text('Tidak ada sidang hari ini'))
+                  : Screenshot(
+                      controller: controller,
+                      child: jadwalWidget(context),
+                    ),
+        ),
+      ),
+    );
+  }
+
+  Widget jadwalWidget(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
+    return SizedBox(
+      width: size.width,
+      child: Column(
+        children: lists
+            .asMap()
+            .map((i, v) {
+              return MapEntry(
+                  i,
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 30,
+                              child: Text(
+                                '${i + 1}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
                               ),
                             ),
-                          ),
-                        );
-                      },
+                            SizedBox(
+                              width: 300,
+                              child: Text(
+                                lists[i]
+                                    .perkara!
+                                    .terdakwa
+                                    .replaceAll(';', '\n'),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            Container(width: 16),
+                            SizedBox(
+                              width: 200,
+                              child: Text(lists[i].agenda),
+                            ),
+                            Container(width: 16),
+                            SizedBox(
+                              width: 250,
+                              child: detailText(lists[i].perkara!.jpu),
+                            ),
+                            Container(width: 16),
+                            SizedBox(
+                              width: 250,
+                              child: detailText(lists[i].perkara!.majelis),
+                            ),
+                            Container(width: 16),
+                            SizedBox(
+                              width: 250,
+                              child: Text(lists[i].perkara!.panitera),
+                            ),
+                            Container(width: 16),
+                            IconButton(
+                              onPressed: () {
+                                Navigator.push(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return DetailPerkara(
+                                      perkara: lists[i].perkara!);
+                                }));
+                              },
+                              icon: const Icon(Icons.remove_red_eye),
+                            ),
+                            IconButton(
+                              onPressed: () async {
+                                await ApiTouna.ketSidang(
+                                    lists[i].id!, !lists[i].ket!);
+                                await cek();
+                              },
+                              icon: const Icon(Icons.check),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                  ));
+            })
+            .values
+            .toList(),
+      ),
+
+      // child: ListView.builder(
+      //   itemCount: lists.length,
+      //   shrinkWrap: true,
+      //   itemBuilder: (context, i) {
+      //     return jadwalTile(context, i);
+      //   },
+      // ),
+    );
+  }
+
+  Widget jadwalTile(BuildContext context, int i) {
+    return Card(
+      color: lists[i].ket! ? Colors.green[300] : null,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 30,
+                child: Text(
+                  '${i + 1}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              SizedBox(
+                width: 300,
+                child: Text(
+                  lists[i].perkara!.terdakwa.replaceAll(';', '\n'),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              Container(width: 16),
+              SizedBox(
+                width: 200,
+                child: Text(lists[i].agenda),
+              ),
+              Container(width: 16),
+              SizedBox(
+                width: 250,
+                child: detailText(lists[i].perkara!.jpu),
+              ),
+              Container(width: 16),
+              SizedBox(
+                width: 250,
+                child: detailText(lists[i].perkara!.majelis),
+              ),
+              Container(width: 16),
+              SizedBox(
+                width: 250,
+                child: Text(lists[i].perkara!.panitera),
+              ),
+              Container(width: 16),
+              IconButton(
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return DetailPerkara(perkara: lists[i].perkara!);
+                  }));
+                },
+                icon: const Icon(Icons.remove_red_eye),
+              ),
+              IconButton(
+                onPressed: () async {
+                  await ApiTouna.ketSidang(lists[i].id!, !lists[i].ket!);
+                  await cek();
+                },
+                icon: const Icon(Icons.check),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
