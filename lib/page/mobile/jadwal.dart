@@ -3,10 +3,12 @@ import 'package:excel/excel.dart' as exc;
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:touna/api/api.dart';
 import 'package:touna/main.dart';
 import 'package:touna/model/sidang_model.dart';
 import 'package:touna/util/date.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class JadwalMobile extends StatefulWidget {
   const JadwalMobile({super.key});
@@ -41,6 +43,26 @@ class JadwalMobileState extends State<JadwalMobile> {
       appState = AppState.done;
       lists = fetch;
     });
+  }
+
+  share() async {
+    var disk = await Permission.storage.isGranted;
+    if (!disk) await Permission.storage.request();
+
+    final dir = Directory('/storage/emulated/0/Download');
+    // print(dir?.path);
+    print('exist : ${await dir.exists()}');
+    if (!await dir.exists()) return;
+
+    print('granted : ${await Permission.storage.isGranted}');
+    if (!await Permission.storage.isGranted) return;
+
+    var files = await dir.list().toList();
+    files.forEach((e) => print(e.path));
+
+    // final url = Uri.parse('https://wa.me');
+    await launchUrl(Uri.file(files.first.absolute.path, windows: false));
+    // Intent intent = Intent
   }
 
   download() async {
@@ -125,6 +147,10 @@ class JadwalMobileState extends State<JadwalMobile> {
           IconButton(
             onPressed: () => cek(),
             icon: const Icon(Icons.refresh),
+          ),
+          IconButton(
+            onPressed: () => share(),
+            icon: const Icon(Icons.share),
           ),
         ],
       ),

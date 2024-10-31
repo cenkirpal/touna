@@ -52,6 +52,9 @@ dependencies:
   esc_pos_utils_plus: ^2.0.3
   image: ^4.2.0
   screenshot: ^3.0.0
+  url_launcher: ^6.3.1
+  permission_handler: ^11.3.1
+  pdf: ^3.11.1
 
 dev_dependencies:
   flutter_test:

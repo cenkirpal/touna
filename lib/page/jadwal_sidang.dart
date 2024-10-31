@@ -11,6 +11,7 @@ import 'package:touna/model/sidang_model.dart';
 import 'package:touna/page/detail_perkara.dart';
 import 'package:touna/page/drawer.dart';
 import 'package:touna/util/date.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class JadwalSidang extends StatefulWidget {
   const JadwalSidang({super.key});
@@ -182,11 +183,16 @@ class JadwalSidangState extends State<JadwalSidang> {
 
     if (context.mounted) {
       var byte = await controller.captureFromLongWidget(
-        InheritedTheme.captureAll(context, jadwalWidget(context)),
+        pixelRatio: 5,
+        InheritedTheme.captureAll(context, jadwalWidget(context, true)),
       );
 
       var file = await File(join(des.path, '${date.formatDB}.png')).create();
       file.writeAsBytesSync(byte);
+
+      // final uri = Uri.file(des.path);
+      final uri = Uri.file(des.path);
+      await launchUrl(uri);
     }
   }
 
@@ -253,106 +259,158 @@ class JadwalSidangState extends State<JadwalSidang> {
                   ? const Center(child: Text('Tidak ada sidang hari ini'))
                   : Screenshot(
                       controller: controller,
-                      child: jadwalWidget(context),
+                      child: captureWidget(context, false),
                     ),
         ),
       ),
     );
   }
 
-  Widget jadwalWidget(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
+  Widget captureWidget(BuildContext context, bool shot) {
     return Container(
       color: Theme.of(context).scaffoldBackgroundColor,
-      width: size.width,
-      child: Column(
-        children: lists
-            .asMap()
-            .map((i, v) {
-              return MapEntry(
-                  i,
-                  Theme(
-                    data: ThemeData().copyWith(
-                      textTheme: const TextTheme(
-                        bodyMedium: TextStyle(
-                          fontSize: 12,
-                          color: Colors.black,
+      child: Theme(
+          data: ThemeData().copyWith(
+            textTheme: const TextTheme(
+              bodyMedium: TextStyle(
+                fontSize: 12,
+                color: Colors.black,
+              ),
+            ),
+          ),
+          child: Column(
+            children: lists
+                .asMap()
+                .map((i, v) {
+                  return MapEntry(
+                      i,
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: shotWidget(context, i, shot),
                         ),
-                      ),
-                    ),
-                    child: Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: 30,
-                              child: Text(
-                                '${i + 1}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              width: 200,
-                              child: Text(
-                                lists[i]
-                                    .perkara!
-                                    .terdakwa
-                                    .replaceAll(';', '\n'),
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            Container(width: 16),
-                            SizedBox(
-                              width: 200,
-                              child: Text(lists[i].agenda),
-                            ),
-                            Container(width: 16),
-                            SizedBox(
-                              width: 200,
-                              child: detailText(lists[i].perkara!.jpu),
-                            ),
-                            Container(width: 16),
-                            SizedBox(
-                              width: 200,
-                              child: detailText(lists[i].perkara!.majelis),
-                            ),
-                            Container(width: 16),
-                            SizedBox(
-                              width: 200,
-                              child: Text(lists[i].perkara!.panitera),
-                            ),
-                            Container(width: 16),
-                            IconButton(
-                              onPressed: () {
-                                Navigator.push(context,
-                                    MaterialPageRoute(builder: (context) {
-                                  return DetailPerkara(
-                                      perkara: lists[i].perkara!);
-                                }));
-                              },
-                              icon: const Icon(Icons.remove_red_eye),
-                            ),
-                            IconButton(
-                              onPressed: () async {
-                                await ApiTouna.ketSidang(
-                                    lists[i].id!, !lists[i].ket!);
-                                await cek();
-                              },
-                              icon: const Icon(Icons.check),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ));
-            })
-            .values
-            .toList(),
+                      ));
+                })
+                .values
+                .toList(),
+          )),
+    );
+  }
+
+  shotWidget(BuildContext context, int i, bool shot) {
+    if (shot) {
+      return sidangTile(context, i);
+    }
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: sidangTile(context, i),
+    );
+  }
+
+  Widget jadwalWidget(BuildContext context, bool shot) {
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: Theme(
+        data: ThemeData().copyWith(
+          textTheme: const TextTheme(
+            bodyMedium: TextStyle(
+              fontSize: 12,
+              color: Colors.black,
+            ),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Material(
+              // color: Colors.green,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(36, 8, 8, 8),
+                child: Text(
+                  '${date.dayname}, ${date.fullday}',
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            Column(
+              children: lists
+                  .asMap()
+                  .map((i, v) {
+                    return MapEntry(
+                        i,
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: sidangTile(context, i),
+                          ),
+                        ));
+                  })
+                  .values
+                  .toList(),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget sidangTile(BuildContext context, int i) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 30,
+          child: Text(
+            '${i + 1}',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        SizedBox(
+          width: 200,
+          child: Text(
+            lists[i].perkara!.terdakwa.replaceAll(';', '\n'),
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+        Container(width: 16),
+        SizedBox(
+          width: 150,
+          child: Text(lists[i].agenda),
+        ),
+        Container(width: 16),
+        SizedBox(
+          width: 220,
+          child: detailText(lists[i].perkara!.jpu),
+        ),
+        Container(width: 16),
+        SizedBox(
+          width: 200,
+          child: detailText(lists[i].perkara!.majelis),
+        ),
+        Container(width: 16),
+        SizedBox(
+          width: 200,
+          child: Text(lists[i].perkara!.panitera),
+        ),
+        Container(width: 16),
+        IconButton(
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) {
+              return DetailPerkara(perkara: lists[i].perkara!);
+            }));
+          },
+          icon: const Icon(Icons.remove_red_eye),
+        ),
+        IconButton(
+          onPressed: () async {
+            await ApiTouna.ketSidang(lists[i].id!, !lists[i].ket!);
+            await cek();
+          },
+          icon: const Icon(Icons.check),
+        ),
+      ],
     );
   }
 

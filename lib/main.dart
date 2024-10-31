@@ -3,8 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:touna/page/jadwal_sidang.dart';
 import 'package:touna/page/mobile/jadwal.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  runApp(
+    const MyApp(),
+  );
 }
 
 enum AppState { done, loading, error }
