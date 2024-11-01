@@ -10,6 +10,7 @@ import 'package:touna/main.dart';
 import 'package:touna/model/sidang_model.dart';
 import 'package:touna/page/detail_perkara.dart';
 import 'package:touna/page/drawer.dart';
+import 'package:touna/page/laporan/p38.dart';
 import 'package:touna/util/date.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -262,6 +263,13 @@ class JadwalSidangState extends State<JadwalSidang> {
                       child: captureWidget(context, false),
                     ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () =>
+            Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return P38Page(date: date, lists: lists);
+        })),
+        child: const Icon(Icons.picture_as_pdf),
       ),
     );
   }
