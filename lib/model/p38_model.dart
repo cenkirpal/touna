@@ -43,7 +43,6 @@ class P38DB {
   static Future<Database> init() async {
     final doc = await getApplicationSupportDirectory();
     final dir = Directory(join(doc.path, 'touna'));
-    print(doc.path);
     await dir.create(recursive: true);
     final db = databaseFactoryIo.openDatabase(join(dir.path, 'surat.db'));
     return db;
@@ -55,7 +54,7 @@ class P38DB {
     final data = await store.query().getSnapshot(db);
     if (data == null) {
       var sample = P38Model(
-        tanggal: DateTime.now().fullday,
+        tanggal: DateTime.now().formatDB,
         nomor: 'B- 1587/P.2.18/Es.2/10/2024',
         kasi: 'Kepala Seksi Tindak Pidana Umum',
         nama: 'JUSRIN HUSEN, S.H.,M.H.',

@@ -92,7 +92,7 @@ class PrintPDF {
                 const Row(
                   children: [
                     SizedBox(width: 100, child: Text('Lampiran')),
-                    Text(': -')
+                    Text(': -'),
                   ],
                 ),
                 const Row(
@@ -106,6 +106,18 @@ class PrintPDF {
                 const Text(
                   'Kepala Lembaga Pemasyaakatan\nKlas II B Ampana \nDI –',
                   style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const Text.rich(
+                  textAlign: TextAlign.justify,
+                  TextSpan(
+                    children: [
+                      WidgetSpan(child: SizedBox(width: 40)),
+                      TextSpan(
+                        text: 'A m p a n a',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
                 ),
                 Container(height: 12),
                 Text.rich(
@@ -236,8 +248,8 @@ class PrintPDF {
                       )
                     ],
                   ),
-                const Text('Atas bantuannya diucapkan terima kasih. '),
                 Container(height: 12),
+                const Text('Atas bantuannya diucapkan terima kasih. '),
                 Align(
                   alignment: Alignment.centerRight,
                   child: SizedBox(

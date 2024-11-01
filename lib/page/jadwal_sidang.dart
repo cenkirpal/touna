@@ -249,20 +249,20 @@ class JadwalSidangState extends State<JadwalSidang> {
         ],
       ),
       drawer: const DrawerWidget(),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: appState == AppState.loading
-              ? const Center(
-                  child: SizedBox(width: 200, child: LinearProgressIndicator()),
-                )
-              : lists.isEmpty
-                  ? const Center(child: Text('Tidak ada sidang hari ini'))
-                  : Screenshot(
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: appState == AppState.loading
+            ? const Center(
+                child: SizedBox(width: 200, child: LinearProgressIndicator()),
+              )
+            : lists.isEmpty
+                ? const Center(child: Text('Tidak ada sidang hari ini'))
+                : SingleChildScrollView(
+                    child: Screenshot(
                       controller: controller,
                       child: captureWidget(context, false),
                     ),
-        ),
+                  ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () =>
@@ -293,6 +293,7 @@ class JadwalSidangState extends State<JadwalSidang> {
                   return MapEntry(
                       i,
                       Card(
+                        color: colorTile(v),
                         child: Padding(
                           padding: const EdgeInsets.all(12),
                           child: shotWidget(context, i, shot),
@@ -305,8 +306,15 @@ class JadwalSidangState extends State<JadwalSidang> {
     );
   }
 
+  colorTile(SidangModel v) {
+    if (v.perkara!.putusan == true) return Colors.pink[300];
+    if (v.ket == true) return Colors.green[300];
+
+    return null;
+  }
+
   shotWidget(BuildContext context, int i, bool shot) {
-    if (shot) {
+    if (!shot) {
       return sidangTile(context, i);
     }
     return SingleChildScrollView(
@@ -331,7 +339,6 @@ class JadwalSidangState extends State<JadwalSidang> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Material(
-              // color: Colors.green,
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(36, 8, 8, 8),
                 child: Text(

@@ -29,7 +29,7 @@ class DetailPerkaraState extends State<DetailPerkara> {
       listSidang = [];
     });
     var data = await ApiTouna.getSidang(widget.perkara.id!);
-
+    if (!mounted) return;
     setState(() {
       appState = AppState.done;
       listSidang = data.reversed.toList();
@@ -324,8 +324,8 @@ class EditSidangState extends State<EditSidang> {
             if (!_form.currentState!.validate()) return;
 
             await ApiTouna.editSidang(
-                widget.sidang.id!, _date.text, _agenda.text,
-                keterangan: _keterangan.text);
+                widget.sidang.id!, _date.text, _agenda.text.toUpperCase(),
+                keterangan: _keterangan.text.toUpperCase());
             if (context.mounted) Navigator.pop(context);
           },
           child: const Text('Save'),

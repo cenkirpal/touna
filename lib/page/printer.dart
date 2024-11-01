@@ -440,7 +440,7 @@ class PrinterPageState extends State<PrinterPage> {
                           width: 120,
                           child: Text('Volume'),
                         ),
-                        const Text(': '),
+                        const Text(': (L) '),
                         Expanded(
                           child: TextFormField(
                             controller: _volume,
@@ -534,7 +534,7 @@ class PrinterPageState extends State<PrinterPage> {
                     )),
                 const Text('-----------------------------------------------'),
                 const Text(
-                  'SUBSIDI BULAN JANUARI 2024 : BIOSOLAR RP. 5.200 / LITER DAN PERTALITE RP. 1.350/LITER\nMARI GUNAKAN PERTAMAX SERIES DAN DEX SERIES SUBSIDI HANYA UNTUK YANG BERHAK MENERIMA\nSELAMAT JALAN DAN TERIMAKASIH',
+                  'SUBSIDI BBM DARI NEGARA : BIOSOLAR RP. 4.807 / LITER DAN PERTALITE RP. 1.387/LITER\nMARI GUNAKAN PERTAMAX SERIES DAN DEX SERIES SUBSIDI HANYA UNTUK YANG BERHAK MENERIMA\nSELAMAT JALAN DAN TERIMAKASIH',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 14),
                 ),
@@ -567,7 +567,7 @@ class PrinterPageState extends State<PrinterPage> {
     var pompa = 'Pulau/Pompa    : ${_pompa.text}';
     var produk = 'Nama Produk    : ${_produk.text}';
     var harga = 'Harga / Liter  : ${_harga.text}';
-    var volume = 'Volume         : ${_volume.text}';
+    var volume = 'Volume         : (L) ${_volume.text}';
     var total = 'Total Harga    : ${_total.text}';
     var operator = 'Operator       : ${_operator.text}';
     var cont = '$pompa\n$produk\n$harga\n$volume\n$total\n$operator';
