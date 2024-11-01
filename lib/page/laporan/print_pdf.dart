@@ -107,11 +107,18 @@ class PrintPDF {
                   'Kepala Lembaga Pemasyaakatan\nKlas II B Ampana \nDI –',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
+                const Text.rich(TextSpan(children: [
+                  WidgetSpan(child: SizedBox(width: 40)),
+                  TextSpan(
+                      text: 'A m p a n a',
+                      style: TextStyle(fontWeight: FontWeight.bold))
+                ])),
                 Container(height: 12),
                 Text.rich(
                   textAlign: TextAlign.justify,
                   TextSpan(
                     children: [
+                      const WidgetSpan(child: SizedBox(width: 40)),
                       const TextSpan(text: 'Guna melaksanakan persidangan '),
                       const TextSpan(
                         text:
@@ -152,7 +159,7 @@ class PrintPDF {
                                 ),
                               ),
                               Container(
-                                width: 350,
+                                width: 400,
                                 height: 25,
                                 alignment: Alignment.center,
                                 decoration: rbtBorder,
@@ -177,7 +184,7 @@ class PrintPDF {
                                     child: Text('${i + 1}'),
                                   ),
                                   Container(
-                                    width: 350,
+                                    width: 400,
                                     padding: const EdgeInsets.only(left: 8),
                                     height: p * 25,
                                     decoration: rbBorder,
@@ -196,7 +203,7 @@ class PrintPDF {
                         children: [
                           Container(
                             height: 25,
-                            width: 200,
+                            width: 150,
                             decoration: rbtBorder,
                             alignment: Alignment.center,
                             child: const Text(
@@ -206,7 +213,7 @@ class PrintPDF {
                           ),
                           Container(
                             height: nama * 25,
-                            width: 200,
+                            width: 150,
                             decoration: rbBorder,
                             alignment: Alignment.center,
                             child: const Text('Lapas Ampana'),
@@ -217,7 +224,7 @@ class PrintPDF {
                         children: [
                           Container(
                             height: 25,
-                            width: 200,
+                            width: 150,
                             decoration: rbtBorder,
                             alignment: Alignment.center,
                             child: const Text(
@@ -227,17 +234,20 @@ class PrintPDF {
                           ),
                           Container(
                             height: nama * 25,
-                            width: 200,
+                            width: 150,
                             decoration: rbBorder,
                             alignment: Alignment.center,
-                            child: const Text('Dipanggil Sebagai Terdakwa'),
+                            child: const Text(
+                              'Dipanggil Sebagai Terdakwa',
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                         ],
                       )
                     ],
                   ),
-                const Text('Atas bantuannya diucapkan terima kasih. '),
                 Container(height: 12),
+                const Text('Atas bantuannya diucapkan terima kasih. '),
                 Align(
                   alignment: Alignment.centerRight,
                   child: SizedBox(
