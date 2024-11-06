@@ -9,14 +9,14 @@ import 'package:print_bluetooth_thermal/print_bluetooth_thermal_windows.dart';
 import 'package:sembast/sembast.dart';
 import 'package:touna/db/database.dart';
 
-class PrinterPage extends StatefulWidget {
-  const PrinterPage({super.key});
+class NewPrinterPage extends StatefulWidget {
+  const NewPrinterPage({super.key});
 
   @override
-  PrinterPageState createState() => PrinterPageState();
+  NewPrinterPageState createState() => NewPrinterPageState();
 }
 
-class PrinterPageState extends State<PrinterPage> {
+class NewPrinterPageState extends State<NewPrinterPage> {
   late List<RecordSnapshot> listJenis;
   late RecordSnapshot jenis;
   late List<RecordSnapshot> listSpbu;

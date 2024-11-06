@@ -29,12 +29,12 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-/android/
-/build/
-/ios/
-/macos/
-/web/
-/windows/
+android/
+build/
+ios/
+macos/
+web/
+windows/
 
 # Symbolication related
 app.*.symbols

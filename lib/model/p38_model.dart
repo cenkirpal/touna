@@ -43,7 +43,7 @@ class P38DB {
   static Future<Database> init() async {
     final doc = await getApplicationSupportDirectory();
     final dir = Directory(join(doc.path, 'touna'));
-    print(doc.path);
+
     await dir.create(recursive: true);
     final db = databaseFactoryIo.openDatabase(join(dir.path, 'surat.db'));
     return db;
@@ -73,5 +73,24 @@ class P38DB {
     final store = intMapStoreFactory.store('data');
     await store.delete(db);
     await store.add(db, data.toMap());
+  }
+
+  static Future<List<RecordSnapshot>> getPejabat() async {
+    final db = await init();
+    final store = intMapStoreFactory.store('pejabat');
+    final data = await store.query().getSnapshots(db);
+    return data;
+  }
+
+  static Future addPejabat(String nama, String jabatan) async {
+    final db = await init();
+    final store = intMapStoreFactory.store('pejabat');
+    await store.add(db, {'nama': nama, 'jabatan': jabatan});
+  }
+
+  static Future deletePejabat(int id) async {
+    final db = await init();
+    final store = intMapStoreFactory.store('pejabat');
+    await store.delete(db, finder: Finder(filter: Filter.byKey(id)));
   }
 }

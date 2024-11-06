@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui';
 import 'package:excel/excel.dart' as exc;
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
@@ -9,7 +10,6 @@ import 'package:touna/api/api.dart';
 import 'package:touna/main.dart';
 import 'package:touna/model/sidang_model.dart';
 import 'package:touna/page/detail_perkara.dart';
-import 'package:touna/page/drawer.dart';
 import 'package:touna/page/laporan/p38.dart';
 import 'package:touna/util/date.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -184,14 +184,13 @@ class JadwalSidangState extends State<JadwalSidang> {
 
     if (context.mounted) {
       var byte = await controller.captureFromLongWidget(
-        pixelRatio: 5,
+        pixelRatio: 3,
         InheritedTheme.captureAll(context, jadwalWidget(context, true)),
       );
 
       var file = await File(join(des.path, '${date.formatDB}.png')).create();
       file.writeAsBytesSync(byte);
 
-      // final uri = Uri.file(des.path);
       final uri = Uri.file(des.path);
       await launchUrl(uri);
     }
@@ -248,21 +247,21 @@ class JadwalSidangState extends State<JadwalSidang> {
           ),
         ],
       ),
-      drawer: const DrawerWidget(),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: appState == AppState.loading
-              ? const Center(
-                  child: SizedBox(width: 200, child: LinearProgressIndicator()),
-                )
-              : lists.isEmpty
-                  ? const Center(child: Text('Tidak ada sidang hari ini'))
-                  : Screenshot(
+      // drawer: const DrawerWidget(),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: appState == AppState.loading
+            ? const Center(
+                child: SizedBox(width: 200, child: LinearProgressIndicator()),
+              )
+            : lists.isEmpty
+                ? const Center(child: Text('Tidak ada sidang hari ini'))
+                : SingleChildScrollView(
+                    child: Screenshot(
                       controller: controller,
                       child: captureWidget(context, false),
                     ),
-        ),
+                  ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () =>
@@ -293,6 +292,7 @@ class JadwalSidangState extends State<JadwalSidang> {
                   return MapEntry(
                       i,
                       Card(
+                        color: colorTile(v),
                         child: Padding(
                           padding: const EdgeInsets.all(12),
                           child: shotWidget(context, i, shot),
@@ -305,13 +305,25 @@ class JadwalSidangState extends State<JadwalSidang> {
     );
   }
 
+  colorTile(SidangModel v) {
+    if (v.perkara!.putusan == true) return Colors.pink[300];
+    if (v.ket == true) return Colors.green[300];
+    return null;
+  }
+
   shotWidget(BuildContext context, int i, bool shot) {
     if (shot) {
       return sidangTile(context, i);
     }
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: sidangTile(context, i),
+    return ScrollConfiguration(
+      behavior: const MaterialScrollBehavior().copyWith(dragDevices: {
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.trackpad,
+      }),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: sidangTile(context, i),
+      ),
     );
   }
 

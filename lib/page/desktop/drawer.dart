@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:touna/page/index.dart';
-import 'package:touna/page/printer.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:touna/page/new_print.dart';
+import 'package:touna/provider_widget.dart';
 
-class DrawerWidget extends StatefulWidget {
+class DrawerWidget extends ConsumerStatefulWidget {
   const DrawerWidget({super.key});
 
   @override
   DrawerState createState() => DrawerState();
 }
 
-class DrawerState extends State<DrawerWidget> {
+class DrawerState extends ConsumerState<DrawerWidget> {
   bool show = false;
+
+  goRoute(String name) {
+    ref.read(route.notifier).state = name;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -40,34 +46,49 @@ class DrawerState extends State<DrawerWidget> {
           Expanded(
             child: Column(
               children: [
-                Card(
-                  child: ListTile(
-                    onTap: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) {
-                        return const HomePage(title: 'Jadwal Sidang KN Touna');
-                      }));
-                    },
-                    title: const Text('Data Perkara'),
-                  ),
-                ),
                 if (show)
                   Card(
                     child: ListTile(
                       onTap: () {
                         Navigator.push(context,
                             MaterialPageRoute(builder: (context) {
-                          return const PrinterPage();
+                          return const NewPrinterPage();
                         }));
                       },
                       title: const Text('Print POS'),
                     ),
                   ),
+                Card(
+                  color: activeColor('Data Perkara'),
+                  child: ListTile(
+                    onTap: () => goRoute('Data Perkara'),
+                    title: const Text('Data Perkara'),
+                  ),
+                ),
+                Card(
+                  color: activeColor('Jadwal Sidang'),
+                  child: ListTile(
+                    onTap: () => goRoute('Jadwal Sidang'),
+                    title: const Text('Jadwal Sidang'),
+                  ),
+                ),
+                Card(
+                  color: activeColor('Rekap Sidang'),
+                  child: ListTile(
+                    onTap: () => goRoute('Rekap Sidang'),
+                    title: const Text('Rekap Sidang'),
+                  ),
+                ),
               ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  activeColor(String name) {
+    if (ref.watch(route) == name) return Colors.blue[300];
+    return null;
   }
 }
