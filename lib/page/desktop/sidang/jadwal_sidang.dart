@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
@@ -27,14 +28,28 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
   AppState appState = AppState.done;
   List<SidangModel> lists = [];
   Uint8List? bytes;
+  Timer? timer;
 
   @override
   void initState() {
     super.initState();
+    autoRefresh();
     cek();
   }
 
-  cek() async {
+  @override
+  dispose() {
+    super.dispose();
+    timer?.cancel();
+  }
+
+  autoRefresh() {
+    if (!Platform.isAndroid) {
+      timer = Timer.periodic(const Duration(minutes: 2), (t) => cek());
+    }
+  }
+
+  Future<void> cek() async {
     if (date.dayname == 'Minggu') {
       date = date.add(const Duration(days: 1));
     }
@@ -317,6 +332,12 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
             child: Text(
               data.perkara!.terdakwa.replaceAll(';', '\n'),
               overflow: TextOverflow.clip,
+            ),
+          ),
+          SizedBox(
+            width: 300,
+            child: Text(
+              data.agenda,
             ),
           ),
           SizedBox(

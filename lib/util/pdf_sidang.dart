@@ -28,13 +28,15 @@ class SidangPdf {
     final esign = await rootBundle.load('assets/esign.png');
 
     const double width = 23 * (72 / 2.54);
+    // const double heigh = 33 * (72 / 2.54);
+    const double heigh = double.infinity;
 
     pdf.addPage(
       pw.Page(
         pageTheme: pw.PageTheme(
           pageFormat: const PdfPageFormat(
-            width,
-            double.infinity,
+            width, heigh,
+            // double.infinity,
             marginAll: 30,
           ),
           theme: pw.ThemeData.withFont(base: font, bold: fontB, italic: fontI),
