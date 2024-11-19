@@ -56,6 +56,10 @@ dependencies:
   permission_handler: ^11.3.1
   pdf: ^3.11.1
   printing: ^5.13.4
+  flutter_inappwebview: ^6.1.5
+  flutter_thermal_printer: ^0.0.17
+  file_picker: ^8.1.4
+  pdfrx: ^1.0.88
 
 dev_dependencies:
   flutter_test:

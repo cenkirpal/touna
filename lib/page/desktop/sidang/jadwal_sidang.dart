@@ -12,7 +12,7 @@ import 'package:touna/api/api.dart';
 import 'package:touna/main.dart';
 import 'package:touna/model/sidang_model.dart';
 import 'package:touna/page/desktop/laporan/p38_page.dart';
-import 'package:touna/page/detail_perkara.dart';
+import 'package:touna/page/desktop/perkara/detail_perkara.dart';
 import 'package:touna/util/date.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -45,7 +45,7 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
 
   autoRefresh() {
     if (!Platform.isAndroid) {
-      timer = Timer.periodic(const Duration(minutes: 2), (t) => cek());
+      timer = Timer.periodic(const Duration(minutes: 5), (t) => cek());
     }
   }
 
@@ -63,8 +63,16 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
     var fetch = await ApiTouna.jadwal(date.formatDB);
     if (!mounted) return;
     setState(() {
-      appState = AppState.done;
       lists = fetch;
+      appState = AppState.done;
+    });
+  }
+
+  update(int id, int i) async {
+    var fetch = await ApiTouna.jadwal(date.formatDB);
+    setState(() {
+      var p = fetch.firstWhere((v) => v.id == id);
+      lists[i] = p;
     });
   }
 
@@ -196,9 +204,29 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
   }
 
   capture(BuildContext context) async {
-    var dir = await getApplicationDocumentsDirectory();
-    var des = Directory(join(dir.path, 'sidang'));
-    des.create(recursive: true);
+    Directory dir;
+    Directory des;
+    if (Platform.isAndroid) {
+      dir = await getApplicationDocumentsDirectory();
+      // print(dir.path);
+      // await Permission.storage.request();
+      // await Permission.manageExternalStorage.request();
+      // var dir = Directory('/storage/emulated/0/Download/sidang');
+      // await openAppSettings();
+      // await dir.create();
+      await launchUrl(dir.uri);
+
+      // var dir = Directory('/Storage/emulated/0/Download/sidang');
+      // if (!await dir.exists()) {
+      //   await dir.create(recursive: true);
+      // }
+      // print(await dir.exists());
+      return;
+    } else {
+      dir = await getApplicationDocumentsDirectory();
+      des = Directory(join(dir.path, 'sidang'));
+      des.create(recursive: true);
+    }
 
     if (context.mounted) {
       var byte = await controller.captureFromLongWidget(
@@ -211,7 +239,11 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
       file.writeAsBytesSync(byte);
 
       final uri = Uri.file(des.path);
-      await launchUrl(uri);
+      if (Platform.isAndroid) {
+        await launchUrl(Uri.file(join(des.path, 'P38 - ${date.fullday}.png')));
+      } else {
+        await launchUrl(uri);
+      }
     }
   }
 
@@ -243,6 +275,7 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
+        // if (!Platform.isAndroid)
         IconButton(
           onPressed: () => capture(context),
           icon: const Icon(Icons.photo),
@@ -253,10 +286,11 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
               onTap: () => cek(),
               child: const Text('Refresh'),
             ),
-            PopupMenuItem(
-              onTap: () => download(),
-              child: const Text('Save Excel'),
-            ),
+            if (!Platform.isAndroid)
+              PopupMenuItem(
+                onTap: () => download(),
+                child: const Text('Save Excel'),
+              ),
           ];
         }),
       ],
@@ -280,6 +314,7 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
                   return P38Page(lists: lists, date: date);
                 }));
               },
+              heroTag: 'PDF',
               child: const Icon(Icons.picture_as_pdf),
             ),
     );
@@ -289,17 +324,17 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
     var data = lists.asMap();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: data
-          .map((i, v) {
-            return MapEntry(
-                i,
-                Card(
-                  color: colorTile(v),
-                  child: sidangContainer(context, shot, i, v),
-                ));
-          })
-          .values
-          .toList(),
+      children: [
+        ...data.map((i, v) {
+          return MapEntry(
+              i,
+              Card(
+                color: colorTile(v),
+                child: sidangContainer(context, shot, i, v),
+              ));
+        }).values,
+        Container(height: 70),
+      ],
     );
   }
 
@@ -309,6 +344,7 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
       behavior: const MaterialScrollBehavior().copyWith(dragDevices: {
         PointerDeviceKind.mouse,
         PointerDeviceKind.trackpad,
+        PointerDeviceKind.touch,
       }),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -379,7 +415,7 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
               child: IconButton(
                 onPressed: () async {
                   await ApiTouna.ketSidang(data.id!, !(data.ket ?? false));
-                  await cek();
+                  await update(data.id!, i);
                 },
                 icon: const Icon(Icons.done),
               ),
@@ -390,7 +426,7 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
   }
 
   colorTile(SidangModel data) {
-    if (data.perkara!.putusan == true) return Colors.pink[200];
+    if (data.perkara!.putusan != null) return Colors.pink[200];
     if (data.ket == true) return Colors.green[200];
     return null;
   }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:touna/page/new_print.dart';
 import 'package:touna/provider_widget.dart';
 
 class DrawerWidget extends ConsumerStatefulWidget {
@@ -13,12 +12,16 @@ class DrawerWidget extends ConsumerStatefulWidget {
 class DrawerState extends ConsumerState<DrawerWidget> {
   bool show = false;
 
-  goRoute(String name) {
+  goRoute(String name, bool draw) {
+    if (draw) {
+      Scaffold.of(context).closeDrawer();
+    }
     ref.read(route.notifier).state = name;
   }
 
   @override
   Widget build(BuildContext context) {
+    var draw = Scaffold.of(context).hasDrawer;
     return Container(
       width: 300,
       color: Colors.grey.shade200,
@@ -48,37 +51,41 @@ class DrawerState extends ConsumerState<DrawerWidget> {
               children: [
                 if (show)
                   Card(
+                    color: activeColor('Printer'),
                     child: ListTile(
-                      onTap: () {
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (context) {
-                          return const NewPrinterPage();
-                        }));
-                      },
-                      title: const Text('Print POS'),
+                      onTap: () => goRoute('Printer', draw),
+                      title: const Text('Printer'),
                     ),
                   ),
                 Card(
                   color: activeColor('Data Perkara'),
                   child: ListTile(
-                    onTap: () => goRoute('Data Perkara'),
+                    onTap: () => goRoute('Data Perkara', draw),
                     title: const Text('Data Perkara'),
                   ),
                 ),
                 Card(
                   color: activeColor('Jadwal Sidang'),
                   child: ListTile(
-                    onTap: () => goRoute('Jadwal Sidang'),
+                    onTap: () => goRoute('Jadwal Sidang', draw),
                     title: const Text('Jadwal Sidang'),
                   ),
                 ),
                 Card(
                   color: activeColor('Rekap Sidang'),
                   child: ListTile(
-                    onTap: () => goRoute('Rekap Sidang'),
+                    onTap: () => goRoute('Rekap Sidang', draw),
                     title: const Text('Rekap Sidang'),
                   ),
                 ),
+                if (show)
+                  Card(
+                    color: activeColor('Open Web'),
+                    child: ListTile(
+                      onTap: () => goRoute('Open Web', draw),
+                      title: const Text('Open Web'),
+                    ),
+                  ),
               ],
             ),
           ),

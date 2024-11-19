@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:touna/api/api.dart';
 import 'package:touna/model/perkara_model.dart';
@@ -22,7 +24,7 @@ class AddPerkaraState extends State<AddPerkara> {
     return AlertDialog(
       title: const Text('Tambah Perkara'),
       content: SizedBox(
-        width: size.width - 200,
+        width: size.width - (Platform.isAndroid ? 12 : 200),
         child: SingleChildScrollView(
           child: Form(
             key: _form,
@@ -122,7 +124,7 @@ class AddPerkaraState extends State<AddPerkara> {
               majelis: _majelis.text,
               panitera: _panitera.text,
               noPerkara: _noPerkara.text,
-              putusan: false,
+              putusan: null,
             ).toMap();
             pkr.removeWhere((key, value) => key == 'sidang');
 

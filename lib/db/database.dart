@@ -6,6 +6,7 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_io.dart';
 import 'package:sembast/utils/value_utils.dart';
 import 'package:touna/model/sidang_model.dart';
+import 'package:touna/page/desktop/printer/nota_model.dart';
 
 class TounaDB {
   static Future<Database> init() async {
@@ -14,6 +15,42 @@ class TounaDB {
     await dir.create(recursive: true);
     final db = databaseFactoryIo.openDatabase(join(dir.path, 'touna.db'));
     return db;
+  }
+
+  static Future addNota(String model, Map<String, dynamic> data) async {
+    final db = await init();
+    final store = intMapStoreFactory.store(model);
+    await store.delete(db);
+    await store.add(db, data);
+  }
+
+  static Future<NotaModel> getNota(String model) async {
+    final db = await init();
+    final store = intMapStoreFactory.store(model);
+
+    final data = await store.query().getSnapshot(db);
+    if (data == null) {
+      return NotaModel(
+        kode: '3412902',
+        alamat: 'SPBU Kuningan\nJl. Gatot Subroto, Kuningan',
+        shift: '1',
+        trans: '1435893',
+        waktu: '07/11/2024 07:11:28',
+        jam: '',
+        pompa: '4',
+        produk: 'PERTAMAX',
+        harga: 'Rp. 12,100',
+        volume: '10',
+        total: '300,000',
+        operator: 'DENI MALIK',
+        cash: '300,000',
+        plat: '-',
+        ket:
+            'Anda menggunakan subsidi BBM dari negara: Bio Solar Rp. 3.584/liter dan Pertalite Rp. 353/liter untuk tidak disalahgunakan. Mari Gunakan Pertamax Series dan Dex Series subsidi hanya untuk yang berhak menerimanya.',
+      );
+    } else {
+      return NotaModel.fromJson(data.value as Map<String, dynamic>);
+    }
   }
 
   static Future add(String record, Map<String, dynamic> data) async {

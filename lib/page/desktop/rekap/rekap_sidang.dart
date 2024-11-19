@@ -190,84 +190,124 @@ class RekapSidangState extends State<RekapSidang> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(this.context).size;
     return PageContainer(
-      title: lists.isEmpty
-          ? ''
-          : 'Total Sidang : ${lists.length} dari $perkara Perkara',
-      actions: [
-        TextButton(
-          onPressed: () async {
-            var picker = await showDateRangePicker(
-              builder: (context, child) {
-                return Column(
-                  children: [
-                    ConstrainedBox(
-                      constraints: BoxConstraints(
-                          maxWidth: 400.0, maxHeight: size.height - 100),
-                      child: child,
-                    )
-                  ],
-                );
-              },
-              context: context,
-              firstDate: DateTime(2020),
-              lastDate: DateTime(2100),
-            );
-            setState(() => date = picker);
-            if (picker != null) rekap(picker);
-          },
-          child: Text(
-            date == null
-                ? 'Pilih Tanggal'
-                : '${date!.start.fullday} - ${date!.end.fullday}',
+        title: Platform.isAndroid
+            ? ''
+            : lists.isEmpty
+                ? ''
+                : 'Total Sidang : ${lists.length} dari $perkara Perkara',
+        actions: [
+          TextButton(
+            onPressed: () async {
+              var picker = await showDateRangePicker(
+                builder: (context, child) {
+                  return Column(
+                    children: [
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                            maxWidth: 400.0, maxHeight: size.height - 100),
+                        child: child,
+                      )
+                    ],
+                  );
+                },
+                context: context,
+                firstDate: DateTime(2020),
+                lastDate: DateTime(2100),
+              );
+              setState(() => date = picker);
+              if (picker != null) rekap(picker);
+            },
+            child: Text(
+              date == null
+                  ? 'Pilih Tanggal'
+                  : '${date!.start.fullday} - ${date!.end.fullday}',
+            ),
           ),
-        ),
-        if (lists.isNotEmpty)
-          IconButton(
-            onPressed: () => download(),
-            icon: const Icon(Icons.download),
+          if (lists.isNotEmpty && !Platform.isAndroid)
+            IconButton(
+              onPressed: () => download(),
+              icon: const Icon(Icons.download),
+            ),
+        ],
+        body: appState == AppState.loading
+            ? const Center(
+                child: SizedBox(
+                width: 200,
+                child: LinearProgressIndicator(),
+              ))
+            : lists.isEmpty
+                ? const Center(child: Text('Tidak Ada Data'))
+                : bodyContainer(context)
+        // : ListView.builder(
+        //     itemCount: lists.length,
+        //     shrinkWrap: true,
+        //     itemBuilder: (context, i) => sidangTile(i, lists[i]),
+        //   ),
+        );
+  }
+
+  bodyContainer(BuildContext context) {
+    if (Platform.isAndroid) {
+      return Column(
+        children: [
+          Container(
+            width: MediaQuery.of(context).size.width,
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            color: Colors.green[200],
+            child: Text(
+              lists.isEmpty
+                  ? ''
+                  : 'Total Sidang : ${lists.length} dari $perkara Perkara',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
-      ],
-      body: appState == AppState.loading
-          ? const Center(
-              child: SizedBox(
-              width: 200,
-              child: LinearProgressIndicator(),
-            ))
-          : lists.isEmpty
-              ? const Center(child: Text('Tidak Ada Data'))
-              : ListView.builder(
-                  itemCount: lists.length,
-                  shrinkWrap: true,
-                  itemBuilder: (context, i) => sidangTile(i, lists[i]),
-                ),
-    );
+          Expanded(
+            child: ListView.builder(
+              itemCount: lists.length,
+              shrinkWrap: true,
+              itemBuilder: (context, i) => sidangTile(i, lists[i]),
+            ),
+          ),
+        ],
+      );
+    } else {
+      return ListView.builder(
+        itemCount: lists.length,
+        shrinkWrap: true,
+        itemBuilder: (context, i) => sidangTile(i, lists[i]),
+      );
+    }
   }
 
   sidangTile(int i, SidangModel data) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              alignment: Alignment.center,
-              child: Text('${i + 1}'),
-            ),
-            SizedBox(
-              width: 250,
-              child: Text(lists[i].perkara!.terdakwa.replaceAll(';', '\n')),
-            ),
-            SizedBox(
-              width: 200,
-              child: Text(lists[i].agenda),
-            ),
-            Container(width: 16),
-            SizedBox(
-              width: 150,
-              child: Text(DateTime.parse(lists[i].date).fullday),
-            ),
-          ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                alignment: Alignment.center,
+                child: Text('${i + 1}'),
+              ),
+              SizedBox(
+                width: 250,
+                child: Text(lists[i].perkara!.terdakwa.replaceAll(';', '\n')),
+              ),
+              SizedBox(
+                width: 200,
+                child: Text(lists[i].agenda),
+              ),
+              Container(width: 16),
+              SizedBox(
+                width: 150,
+                child: Text(DateTime.parse(lists[i].date).fullday),
+              ),
+            ],
+          ),
         ),
       ),
     );

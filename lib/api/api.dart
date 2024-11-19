@@ -23,8 +23,6 @@ class ApiTouna {
         list.add(PerkaraModel.fromJson(item));
       }
       return ResponseApi<PerkaraModel>(error: false, result: list);
-
-      // print(response.data);
     } on DioException catch (e) {
       error(e.response?.data.toString());
       return ResponseApi(error: false, msg: e.message ?? 'Unknown Error');
@@ -44,7 +42,7 @@ class ApiTouna {
       return PerkaraModel.fromJson(response.data);
     } on DioException catch (e) {
       error(e.response?.data);
-      throw Exception(e.response?.data.toString());
+      throw Exception(e.response?.data ?? 'Unknown Error');
     }
   }
 
@@ -62,7 +60,7 @@ class ApiTouna {
       await request;
     } on DioException catch (e) {
       error(e.response?.data.toString());
-      throw Exception('Error Adding');
+      throw Exception(e.response?.data ?? 'Unknown Error');
     }
   }
 
@@ -83,11 +81,33 @@ class ApiTouna {
       await request;
     } on DioException catch (e) {
       error(e.response?.data.toString());
-      throw Exception('Error Editing');
+      throw Exception(e.response?.data ?? 'Unknown Error');
     }
   }
 
-  static Future putus(int id, bool putusan) async {
+  static Future addFiles(int id, String putusan) async {
+    final request = Dio().post(
+      'https://cenkirpal.com/api/touna/add-files',
+      options: Options(headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      }),
+      data: FormData.fromMap({
+        'id': id,
+        'putusan': await MultipartFile.fromFile(putusan),
+        // 'saksi': 'path to saksi file 3',
+      }),
+    );
+
+    try {
+      await request;
+    } on DioException catch (e) {
+      error(e.response?.data.toString());
+      throw Exception(e.response?.data ?? 'Unknown Error');
+    }
+  }
+
+  static Future putus(int id, String? putusan) async {
     final request = Dio().post(
       'https://cenkirpal.com/api/touna/putus',
       options: Options(headers: {
@@ -117,7 +137,7 @@ class ApiTouna {
       await request;
     } on DioException catch (e) {
       error(e.response?.data.toString());
-      throw Exception('Error Deleting');
+      throw Exception(e.response?.data ?? 'Unknown Error');
     }
   }
 
@@ -161,12 +181,12 @@ class ApiTouna {
       await request;
     } on DioException catch (e) {
       error(e.response?.data.toString());
-      throw Exception('Error Adding');
+      throw Exception(e.response?.data ?? 'Unknown Error');
     }
   }
 
   static Future editSidang(int id, String date, String agenda,
-      {String? ket, String? keterangan}) async {
+      {bool? ket, String? keterangan}) async {
     final request = Dio().post(
       'https://cenkirpal.com/api/touna/edit-sidang',
       options: Options(headers: {
@@ -186,7 +206,7 @@ class ApiTouna {
       await request;
     } on DioException catch (e) {
       error(e.response?.data.toString());
-      throw Exception('Error Editing');
+      throw Exception(e.response?.data ?? 'Unknown Error');
     }
   }
 
@@ -207,7 +227,7 @@ class ApiTouna {
       error(e.response?.statusMessage);
       error(e.response?.statusCode.toString());
       error(e.response?.data);
-      throw Exception('Error Editing');
+      throw Exception(e.response?.data ?? 'Unknown Error');
     }
   }
 
@@ -225,7 +245,7 @@ class ApiTouna {
       await request;
     } on DioException catch (e) {
       error(e.response?.data.toString());
-      throw Exception('Error Deleting');
+      throw Exception(e.response?.data ?? 'Unknown Error');
     }
   }
 
@@ -252,7 +272,7 @@ class ApiTouna {
       error(e.response?.statusMessage);
       error(e.response?.statusCode.toString());
       error(e.response?.data);
-      throw Exception('Error');
+      throw Exception(e.response?.data ?? 'Unknown Error');
     }
   }
 
@@ -280,7 +300,7 @@ class ApiTouna {
       return list;
     } on DioException catch (e) {
       error(e.response?.data.toString());
-      throw Exception('Error');
+      throw Exception(e.response?.data ?? 'Unknown Error');
     }
   }
 }

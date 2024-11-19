@@ -1,8 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:touna/page/desktop/drawer.dart';
-import 'package:touna/page/mobile/jadwal.dart';
+import 'package:touna/page/drawer.dart';
 import 'package:touna/provider_widget.dart';
 
 void main() async {
@@ -32,10 +31,10 @@ class MyApp extends ConsumerWidget {
   }
 
   home(BuildContext context, Function(BuildContext) route) {
-    if (Platform.isAndroid) {
-      return const JadwalMobile();
-      // return const HomeMobilePage(title: 'Jadwal Sidang KN Touna');
-    }
+    // if (Platform.isAndroid) {
+    //   return const JadwalMobile();
+    //   // return const HomeMobilePage(title: 'Jadwal Sidang KN Touna');
+    // }
     return PageView(content: route(context));
     // return const JadwalSidang();
     // return const HomePage(title: 'Jadwal Sidang KN Touna');
@@ -51,26 +50,28 @@ class PageView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     Size size = MediaQuery.of(context).size;
-    return Scaffold(
-      body: Row(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Container(
-            height: size.height,
-            width: 200,
-            color: Colors.pink,
-            child: const DrawerWidget(),
-          ),
-          Expanded(
-            child: Container(
-              height: size.height,
-              color: Colors.green,
-              child: content,
+    return Platform.isAndroid
+        ? Material(child: content)
+        : Scaffold(
+            body: Row(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Container(
+                  height: size.height,
+                  width: 200,
+                  color: Colors.pink,
+                  child: const DrawerWidget(),
+                ),
+                Expanded(
+                  child: Container(
+                    height: size.height,
+                    color: Colors.green,
+                    child: content,
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
-    );
+          );
   }
 }
 
@@ -95,6 +96,7 @@ class PageContainer extends ConsumerWidget {
         backgroundColor: Colors.grey.shade200,
         actions: actions,
       ),
+      drawer: Platform.isAndroid ? const DrawerWidget() : null,
       body: body,
       floatingActionButton: floating,
     );

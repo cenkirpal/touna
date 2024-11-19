@@ -8,7 +8,8 @@ class PerkaraModel {
   String jpu;
   String majelis;
   String panitera;
-  bool? putusan;
+  String? putusan;
+  PerkaraFile? files;
   List<SidangModel>? sidang;
   PerkaraModel({
     this.id,
@@ -18,11 +19,11 @@ class PerkaraModel {
     required this.jpu,
     required this.majelis,
     required this.panitera,
+    this.files,
     this.putusan,
     this.sidang,
   });
   factory PerkaraModel.fromJson(Map<String, dynamic> json) {
-    // print(json['sidang']);
     List<SidangModel> sdg = [];
     if (json['sidang'] != null) {
       for (var item in json['sidang']) {
@@ -38,7 +39,8 @@ class PerkaraModel {
       jpu: json['jpu'],
       majelis: json['majelis'],
       panitera: json['panitera'],
-      putusan: int.parse(json['putusan']) == 0 ? false : true,
+      files: json['files'] == null ? null : PerkaraFile.fromJson(json['files']),
+      putusan: json['putusan'],
       sidang: sdg,
     );
   }
@@ -54,5 +56,14 @@ class PerkaraModel {
       'putusan': putusan,
       'sidang': sidang,
     };
+  }
+}
+
+class PerkaraFile {
+  int id;
+  String? putusan;
+  PerkaraFile({required this.id, this.putusan});
+  factory PerkaraFile.fromJson(Map<String, dynamic> data) {
+    return PerkaraFile(id: data['id'], putusan: data['putusan']);
   }
 }

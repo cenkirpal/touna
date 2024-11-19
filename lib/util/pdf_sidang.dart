@@ -27,16 +27,18 @@ class SidangPdf {
     final logo = await rootBundle.load('assets/logo_kejaksaan.png');
     final esign = await rootBundle.load('assets/esign.png');
 
-    const double width = 23 * (72 / 2.54);
-    // const double heigh = 33 * (72 / 2.54);
-    const double heigh = double.infinity;
+    const double width = 21.5 * (72 / 2.54);
+    const double heigh = 33 * (72 / 2.54);
+    // const double heigh = double.infinity;
 
     pdf.addPage(
       pw.Page(
         pageTheme: pw.PageTheme(
+          // pageFormat: PdfPageFormat.a4.copyWith(
+          //     marginBottom: 30, marginLeft: 30, marginRight: 30, marginTop: 30),
           pageFormat: const PdfPageFormat(
-            width, heigh,
-            // double.infinity,
+            width,
+            heigh,
             marginAll: 30,
           ),
           theme: pw.ThemeData.withFont(base: font, bold: fontB, italic: fontI),
@@ -60,15 +62,16 @@ class SidangPdf {
                         children: [
                           pw.Text('KEJAKSAAN REPUBLIK INDONESIA',
                               style: pw.TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 12,
                                   fontWeight: pw.FontWeight.bold)),
                           pw.Text('KEJAKSAAN TINGGI SULAWESI TENGAH',
                               style: pw.TextStyle(
-                                  fontSize: 15,
+                                  fontSize: 13,
                                   fontWeight: pw.FontWeight.bold)),
                           pw.Text('KEJAKSAAN NEGERI TOJO UNA-UNA',
                               style: pw.TextStyle(
-                                  fontSize: 20,
+                                  fontSize: 15,
+                                  letterSpacing: 1.2,
                                   fontWeight: pw.FontWeight.bold)),
                           pw.Text(
                               'JL.Merdeka Komp.Perkantoran Bumi Mas Uemalingku Kec.Ratolindo Kab.Tojo Una Una 94683',
@@ -80,13 +83,13 @@ class SidangPdf {
                           pw.Container(height: 8),
                           pw.Container(
                             width: size.width - 200,
-                            height: 4,
+                            height: 2.5,
                             color: PdfColor.fromHex('#010'),
                           ),
                           pw.Container(height: 2),
                           pw.Container(
                             width: size.width - 200,
-                            height: 2,
+                            height: 1,
                             color: PdfColor.fromHex('#010'),
                           ),
                         ],
@@ -96,43 +99,46 @@ class SidangPdf {
                 ),
                 pw.Align(
                   alignment: pw.Alignment.topRight,
-                  child: pw.Text(
-                    'P-38',
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                  ),
+                  child: pw.Text('P-38', style: styleBold()),
                 ),
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Row(
                       children: [
-                        pw.SizedBox(width: 100, child: pw.Text('Nomor')),
-                        pw.Text(': ${surat.nomor}')
+                        pw.SizedBox(
+                            width: 100,
+                            child: pw.Text('Nomor', style: styleN())),
+                        pw.Text(': ${surat.nomor}', style: styleN())
                       ],
                     ),
-                    pw.Text('Ampana, ${date.fullday}'),
+                    pw.Text('Ampana, ${date.fullday}', style: styleN()),
                   ],
                 ),
                 pw.Row(
                   children: [
-                    pw.SizedBox(width: 100, child: pw.Text('Lampiran')),
-                    pw.Text(': -')
+                    pw.SizedBox(
+                        width: 100,
+                        child: pw.Text('Lampiran', style: styleN())),
+                    pw.Text(': -', style: styleN())
                   ],
                 ),
                 pw.Row(
                   children: [
-                    pw.SizedBox(width: 100, child: pw.Text('Hal')),
-                    pw.Text(': Bantuan Pemanggilan Terdakwa'),
+                    pw.SizedBox(
+                        width: 100, child: pw.Text('Hal', style: styleN())),
+                    pw.Text(': Bantuan Pemanggilan Terdakwa', style: styleN()),
                   ],
                 ),
                 pw.Container(height: 12),
-                pw.Text('Yth. '),
+                pw.Text('Yth. ', style: styleN()),
                 pw.Text(
                   'Kepala Lembaga Pemasyarakatan\nKlas II B Ampana \nDI –',
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                  style: styleBold(),
                 ),
                 pw.RichText(
                   text: pw.TextSpan(
+                    style: styleN(),
                     children: [
                       pw.WidgetSpan(child: pw.SizedBox(width: 40)),
                       pw.TextSpan(
@@ -146,7 +152,7 @@ class SidangPdf {
                 pw.RichText(
                   textAlign: pw.TextAlign.justify,
                   text: pw.TextSpan(
-                    style: const pw.TextStyle(fontSize: 12),
+                    style: styleN(),
                     children: [
                       pw.WidgetSpan(child: pw.SizedBox(width: 40)),
                       const pw.TextSpan(text: 'Guna melaksanakan persidangan '),
@@ -183,14 +189,14 @@ class SidangPdf {
                                 height: row,
                                 width: 40,
                                 decoration: tableBorder,
-                                child: pw.Text('No'),
+                                child: pw.Text('No', style: styleN()),
                               ),
                               pw.Container(
                                 width: width / 2.5,
                                 height: row,
                                 decoration: rbtBorder,
                                 alignment: pw.Alignment.center,
-                                child: pw.Text('Terdakwa'),
+                                child: pw.Text('Terdakwa', style: styleN()),
                               ),
                             ],
                           ),
@@ -206,6 +212,7 @@ class SidangPdf {
                                     width: 40,
                                     decoration: rlbBorder,
                                     child: pw.Text('${i + 1}',
+                                        style: styleN(),
                                         textAlign: pw.TextAlign.center),
                                   ),
                                   pw.Container(
@@ -216,6 +223,7 @@ class SidangPdf {
                                     padding: const pw.EdgeInsets.only(left: 4),
                                     child: pw.Text(
                                       v.perkara!.terdakwa.replaceAll(';', '\n'),
+                                      style: styleN(),
                                       overflow: pw.TextOverflow.clip,
                                     ),
                                   ),
@@ -232,14 +240,14 @@ class SidangPdf {
                             width: 100,
                             decoration: rbtBorder,
                             alignment: pw.Alignment.center,
-                            child: pw.Text('Alamat'),
+                            child: pw.Text('Alamat', style: styleN()),
                           ),
                           pw.Container(
                             height: nama * row,
                             width: 100,
                             decoration: rbBorder,
                             alignment: pw.Alignment.center,
-                            child: pw.Text('Lapas Ampana'),
+                            child: pw.Text('Lapas Ampana', style: styleN()),
                           ),
                         ],
                       ),
@@ -250,7 +258,7 @@ class SidangPdf {
                             width: 100,
                             decoration: rbtBorder,
                             alignment: pw.Alignment.center,
-                            child: pw.Text('Keterangan'),
+                            child: pw.Text('Keterangan', style: styleN()),
                           ),
                           pw.Container(
                             height: nama * row,
@@ -258,6 +266,7 @@ class SidangPdf {
                             alignment: pw.Alignment.center,
                             decoration: rbBorder,
                             child: pw.Text('Dipanggil Sebagai Terdakwa',
+                                style: styleN(),
                                 textAlign: pw.TextAlign.center),
                           ),
                         ],
@@ -265,7 +274,8 @@ class SidangPdf {
                     ],
                   ),
                 pw.Container(height: 12),
-                pw.Text('Atas bantuannya diucapkan terima kasih. '),
+                pw.Text('Atas bantuannya diucapkan terima kasih. ',
+                    style: styleN()),
                 pw.Container(height: 8),
                 pw.Align(
                   alignment: pw.Alignment.topRight,
@@ -277,7 +287,7 @@ class SidangPdf {
                         pw.Text(
                           'A.n Kepala Kejaksaan Negeri Tojo Una Una\n${surat.kasi}',
                           textAlign: pw.TextAlign.center,
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                          style: styleBold(),
                         ),
                         pw.Container(
                           // margin: const pw.EdgeInsets.only(left: 16),
@@ -290,20 +300,19 @@ class SidangPdf {
                         pw.Text(
                           '${surat.nama}\n${surat.jabatan}',
                           textAlign: pw.TextAlign.center,
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                          style: styleBold(),
                         ),
                       ],
                     ),
                   ),
                 ),
+                pw.Text('Tembusan :', style: styleBold()),
                 pw.Text(
-                  'Tembusan :',
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                ),
-                pw.Text(
-                    '1.	Yth. Kepala Kejaksaan Negeri Tojo Una Una (sebagai laporan).'),
-                pw.Text('2.	Yth. Ketua Pengadilan Negeri Poso Kelas IB.'),
-                pw.Text('3.	A r s i p.  '),
+                    '1.	Yth. Kepala Kejaksaan Negeri Tojo Una Una (sebagai laporan).',
+                    style: styleN()),
+                pw.Text('2.	Yth. Ketua Pengadilan Negeri Poso Kelas IB.',
+                    style: styleN()),
+                pw.Text('3.	A r s i p.  ', style: styleN()),
               ],
             ),
           );
@@ -319,6 +328,9 @@ class SidangPdf {
     file.writeAsBytes(await pdf.save());
     await launchUrl(Uri.file(dir.path));
   }
+
+  styleBold() => pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11);
+  styleN() => const pw.TextStyle(fontSize: 11);
 
   fromPDF(Uint8List bytes, DateTime date) async {
     final pdf = pw.Document();
