@@ -343,7 +343,6 @@ class DataPerkaraState extends State<DataPerkara> {
   }
 
   Widget perkaraTile(PerkaraModel data, int i) {
-    Size size = MediaQuery.of(context).size;
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
       child: Card(
@@ -359,137 +358,135 @@ class DataPerkaraState extends State<DataPerkara> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 4, 0, 0),
-                  child: Row(
+                SizedBox(
+                  width: 40,
+                  child: Text(
+                    '${i + 1}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '${i + 1}',
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      Container(width: 16),
-                      SizedBox(
-                        width: size.width - 150 - 66,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.push(context,
-                                    MaterialPageRoute(builder: (context) {
-                                  return DetailPerkara(perkara: lists[i]);
-                                }));
-                              },
-                              child: Text(
-                                data.noPerkara,
-                                style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.black54,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            Text(
-                              data.terdakwa.replaceAll(';', '\n'),
-                              style: const TextStyle(
-                                  fontSize: 14, fontWeight: FontWeight.bold),
-                            ),
-                          ],
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return DetailPerkara(perkara: lists[i]);
+                          }));
+                        },
+                        child: Text(
+                          data.noPerkara,
+                          style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black54,
+                              fontWeight: FontWeight.bold),
                         ),
+                      ),
+                      Text(
+                        data.terdakwa.replaceAll(';', '\n'),
+                        style: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
                 ),
-                Row(
-                  children: [
-                    if (lists[i].putusan != null)
-                      Container(
-                        width: 100,
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.pink[300],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(lists[i].putusan!),
-                      ),
-                    SizedBox(
-                      width: 50,
-                      child: PopupMenuButton(
-                        itemBuilder: (context) {
-                          return [
-                            PopupMenuItem(
-                              onTap: () {
-                                Future.delayed(Duration.zero, () async {
-                                  if (!context.mounted) return;
-                                  showDialog(
-                                      context: context,
-                                      builder: (context) {
-                                        return EditPerkara(perkara: lists[i]);
-                                      }).then((v) => fetch());
-                                });
-                              },
-                              child: const Text('Edit'),
-                            ),
-                            PopupMenuItem(
-                              onTap: () => setPutusan(
-                                  lists[i].id!, lists[i].noPerkara, i),
-                              child: const Text('Putusan'),
-                            ),
-                            PopupMenuItem(
-                              onTap: () {
-                                Future.delayed(Duration.zero, () async {
-                                  if (!context.mounted) return;
-                                  await showDialog(
-                                      context: context,
-                                      builder: (context) {
-                                        return AlertDialog(
-                                          content: const Text('Delete Data ?'),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                              },
-                                              child: const Text('Batal'),
-                                            ),
-                                            TextButton(
-                                              onPressed: () async {
-                                                await ApiTouna.deletePerkara(
-                                                    lists[i].id!);
-                                                fetch();
-                                                if (context.mounted) {
-                                                  Navigator.pop(context);
-                                                }
-                                              },
-                                              child: const Text('Delete'),
-                                            ),
-                                          ],
-                                        );
-                                      });
-                                  fetch();
-                                });
-                              },
-                              child: const Text('Delete'),
-                            ),
-                          ];
-                        },
-                      ),
+                if (lists[i].putusan != null)
+                  Container(
+                    width: Platform.isAndroid ? 120 : 200,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.pink[300],
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                  ],
+                    child: Text(lists[i].putusan!),
+                  ),
+                SizedBox(
+                  width: 50,
+                  child: PopupMenuButton(
+                    itemBuilder: (context) {
+                      return [
+                        PopupMenuItem(
+                          onTap: () {
+                            Future.delayed(Duration.zero, () async {
+                              if (!context.mounted) return;
+                              showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return EditPerkara(perkara: lists[i]);
+                                  }).then((v) => fetch());
+                            });
+                          },
+                          child: const Text('Edit'),
+                        ),
+                        PopupMenuItem(
+                          onTap: () =>
+                              setPutusan(lists[i].id!, lists[i].noPerkara, i),
+                          child: const Text('Putusan'),
+                        ),
+                        PopupMenuItem(
+                          onTap: () {
+                            Future.delayed(Duration.zero, () async {
+                              if (!context.mounted) return;
+                              await showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      content: const Text('Delete Data ?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text('Batal'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () async {
+                                            await ApiTouna.deletePerkara(
+                                                lists[i].id!);
+                                            fetch();
+                                            if (context.mounted) {
+                                              Navigator.pop(context);
+                                            }
+                                          },
+                                          child: const Text('Delete'),
+                                        ),
+                                      ],
+                                    );
+                                  });
+                              fetch();
+                            });
+                          },
+                          child: const Text('Delete'),
+                        ),
+                      ];
+                    },
+                  ),
                 ),
               ],
             ),
             const Divider(),
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    dataTambahan(70, 220, 'JPU', data.jpu),
-                    dataTambahan(70, 220, 'Majelis', data.majelis),
-                    dataTambahan(70, 200, 'Panitera', data.panitera),
-                  ],
+              child: ScrollConfiguration(
+                behavior: const MaterialScrollBehavior().copyWith(dragDevices: {
+                  PointerDeviceKind.mouse,
+                  PointerDeviceKind.touch,
+                  PointerDeviceKind.trackpad,
+                }),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      dataTambahan(70, 220, 'JPU', data.jpu),
+                      dataTambahan(70, 220, 'Majelis', data.majelis),
+                      dataTambahan(70, 200, 'Panitera', data.panitera),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -539,6 +536,7 @@ class DataPerkaraState extends State<DataPerkara> {
         behavior: const MaterialScrollBehavior().copyWith(dragDevices: {
           PointerDeviceKind.mouse,
           PointerDeviceKind.trackpad,
+          PointerDeviceKind.touch,
         }),
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,

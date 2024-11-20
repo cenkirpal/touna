@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:touna/api/api.dart';
 import 'package:touna/main.dart';
@@ -14,6 +15,7 @@ import 'package:touna/model/sidang_model.dart';
 import 'package:touna/page/desktop/laporan/p38_page.dart';
 import 'package:touna/page/desktop/perkara/detail_perkara.dart';
 import 'package:touna/util/date.dart';
+import 'package:touna/util/platform.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class JadwalSidang extends ConsumerStatefulWidget {
@@ -50,6 +52,9 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
   }
 
   Future<void> cek() async {
+    var p = await Permission.storage.isGranted;
+    if (!p) await Permission.storage.request();
+
     if (date.dayname == 'Minggu') {
       date = date.add(const Duration(days: 1));
     }
@@ -207,21 +212,9 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
     Directory dir;
     Directory des;
     if (Platform.isAndroid) {
-      dir = await getApplicationDocumentsDirectory();
-      // print(dir.path);
-      // await Permission.storage.request();
-      // await Permission.manageExternalStorage.request();
-      // var dir = Directory('/storage/emulated/0/Download/sidang');
-      // await openAppSettings();
-      // await dir.create();
-      await launchUrl(dir.uri);
-
-      // var dir = Directory('/Storage/emulated/0/Download/sidang');
-      // if (!await dir.exists()) {
-      //   await dir.create(recursive: true);
-      // }
-      // print(await dir.exists());
-      return;
+      if (!await Permission.storage.isGranted) return;
+      des = Directory('/storage/emulated/0/Pictures/Sidang');
+      await des.create(recursive: true);
     } else {
       dir = await getApplicationDocumentsDirectory();
       des = Directory(join(dir.path, 'sidang'));
@@ -234,14 +227,15 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
         InheritedTheme.captureAll(context, sidangWidget(context, true)),
       );
 
-      var file =
-          await File(join(des.path, 'P38 - ${date.fullday}.png')).create();
-      file.writeAsBytesSync(byte);
-
-      final uri = Uri.file(des.path);
+      var path = join(des.path, 'P38 - ${date.fullday}.png');
       if (Platform.isAndroid) {
-        await launchUrl(Uri.file(join(des.path, 'P38 - ${date.fullday}.png')));
+        File(path).writeAsBytesSync(byte);
+        await PlatformChannel.scan({'file': path});
       } else {
+        var file = await File(path).create();
+        file.writeAsBytesSync(byte);
+
+        final uri = Uri.file(des.path);
         await launchUrl(uri);
       }
     }
@@ -306,17 +300,20 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
                     child: sidangWidget(context, false),
                   ),
                 ),
-      floating: lists.isEmpty
+      floating: Platform.isAndroid
           ? null
-          : FloatingActionButton(
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  return P38Page(lists: lists, date: date);
-                }));
-              },
-              heroTag: 'PDF',
-              child: const Icon(Icons.picture_as_pdf),
-            ),
+          : lists.isEmpty
+              ? null
+              : FloatingActionButton(
+                  onPressed: () {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
+                      return P38Page(lists: lists, date: date);
+                    }));
+                  },
+                  heroTag: 'PDF',
+                  child: const Icon(Icons.picture_as_pdf),
+                ),
     );
   }
 
@@ -333,7 +330,7 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
                 child: sidangContainer(context, shot, i, v),
               ));
         }).values,
-        Container(height: 70),
+        if (!Platform.isAndroid) Container(height: 70),
       ],
     );
   }
