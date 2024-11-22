@@ -19,7 +19,7 @@ class PrinterContainer extends StatefulWidget {
 
 class PrinterContainerState extends State<PrinterContainer> {
   String nota = 'nota1';
-  Widget printerWidget = const PrinterAmpana();
+  late Widget printerWidget;
   final _note = TextEditingController();
   Printer? printer;
 
@@ -30,6 +30,11 @@ class PrinterContainerState extends State<PrinterContainer> {
   }
 
   init() async {
+    printerWidget = PrinterAmpana(
+      onPrint: (data) {
+        selectPrinter(data);
+      },
+    );
     var q = await PrinterDB.note('get', 'data');
     setState(() => _note.text = q);
   }
@@ -63,7 +68,7 @@ class PrinterContainerState extends State<PrinterContainer> {
         await printData(byte);
       }
     } else {
-      if (!mounted) return;
+      // if (!mounted) return;
 
       var p = await showDialog(
           context: context,
@@ -215,7 +220,8 @@ class ShowPrinterState extends State<ShowPrinter> {
       Future.delayed(const Duration(seconds: 3), () => stopScan());
       await FlutterThermalPrinter.instance.startScan();
       stream = FlutterThermalPrinter.instance.devicesStream.listen((event) {
-        if (!mounted) return;
+        // if (!mounted) return;
+
         setState(() {
           listPrinter = event.map((e) => Printer.fromJson(e.toJson())).toList();
           listPrinter.removeWhere(

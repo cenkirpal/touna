@@ -26,6 +26,7 @@ class MyApp extends ConsumerWidget {
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           useMaterial3: true,
+          scaffoldBackgroundColor: Colors.grey.shade200,
         ),
         home: home(context, route));
   }

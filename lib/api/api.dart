@@ -256,7 +256,7 @@ class ApiTouna {
       options: Options(headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-      }),
+      }, persistentConnection: false),
       data: {'date': date},
     );
     try {
@@ -267,11 +267,11 @@ class ApiTouna {
       }
       return list;
     } on DioException catch (e) {
-      error(e.response?.data.toString());
-      error(e.response?.data.toString());
-      error(e.response?.statusMessage);
-      error(e.response?.statusCode.toString());
-      error(e.response?.data);
+      print(e.error);
+      print(e.message);
+      print(e.response?.statusMessage);
+      print(e.response?.statusCode.toString());
+      print(e.response?.data);
       throw Exception(e.response?.data ?? 'Unknown Error');
     }
   }

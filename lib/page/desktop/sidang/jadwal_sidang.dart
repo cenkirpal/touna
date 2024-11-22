@@ -35,7 +35,7 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
   @override
   void initState() {
     super.initState();
-    autoRefresh();
+    // autoRefresh();
     cek();
   }
 
@@ -52,8 +52,10 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
   }
 
   Future<void> cek() async {
-    var p = await Permission.storage.isGranted;
-    if (!p) await Permission.storage.request();
+    if (Platform.isAndroid) {
+      var p = await Permission.storage.isGranted;
+      if (!p) await Permission.storage.request();
+    }
 
     if (date.dayname == 'Minggu') {
       date = date.add(const Duration(days: 1));
@@ -66,6 +68,9 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
       lists = [];
     });
     var fetch = await ApiTouna.jadwal(date.formatDB);
+
+    fetch.sort((a, b) => b.agenda.compareTo(a.agenda));
+
     if (!mounted) return;
     setState(() {
       lists = fetch;
@@ -294,10 +299,30 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
             )
           : lists.isEmpty
               ? const Center(child: Text('Tidak ada sidang hari ini'))
-              : SingleChildScrollView(
-                  child: Screenshot(
-                    controller: controller,
-                    child: sidangWidget(context, false),
+              : ScrollConfiguration(
+                  behavior:
+                      const MaterialScrollBehavior().copyWith(dragDevices: {
+                    PointerDeviceKind.mouse,
+                    PointerDeviceKind.trackpad,
+                    PointerDeviceKind.touch,
+                  }),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        rowTitle(),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Screenshot(
+                              controller: controller,
+                              child: sidangWidget(context, false),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
       floating: Platform.isAndroid
@@ -319,34 +344,56 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
 
   Widget sidangWidget(BuildContext context, bool shot) {
     var data = lists.asMap();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ...data.map((i, v) {
-          return MapEntry(
-              i,
-              Card(
-                color: colorTile(v),
-                child: sidangContainer(context, shot, i, v),
-              ));
-        }).values,
-        if (!Platform.isAndroid) Container(height: 70),
-      ],
+    return Container(
+      color: Colors.grey.shade200,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ...data.map((i, v) {
+            return MapEntry(
+                i,
+                Card(
+                  color: colorTile(v),
+                  child: sidangContainer(context, shot, i, v),
+                ));
+          }).values,
+          if (!Platform.isAndroid && !shot) Container(height: 70),
+        ],
+      ),
+    );
+  }
+
+  rowTitle() {
+    return Container(
+      color: Colors.grey.shade200,
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+      child: Row(
+        children: [
+          title(40, 'No'),
+          title(300, 'Terdakwa'),
+          title(300, 'Agenda'),
+          title(250, 'JPU'),
+          title(250, 'Majelis Hakim'),
+          title(250, 'Panitera'),
+        ],
+      ),
+    );
+  }
+
+  title(double w, String text) {
+    return Container(
+      padding: const EdgeInsets.only(left: 8),
+      alignment: text == 'No' ? Alignment.center : null,
+      width: w,
+      child: Text(text, style: const TextStyle(fontWeight: FontWeight.bold)),
     );
   }
 
   sidangContainer(BuildContext context, bool shot, int i, SidangModel data) {
     if (shot) return sidangTile(context, i, data, shot);
-    return ScrollConfiguration(
-      behavior: const MaterialScrollBehavior().copyWith(dragDevices: {
-        PointerDeviceKind.mouse,
-        PointerDeviceKind.trackpad,
-        PointerDeviceKind.touch,
-      }),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: sidangTile(context, i, data, shot),
-      ),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: sidangTile(context, i, data, shot),
     );
   }
 
@@ -428,3 +475,6 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
     return null;
   }
 }
+
+
+// Umar 2th sub 2bl
