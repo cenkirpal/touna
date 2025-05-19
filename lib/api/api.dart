@@ -78,7 +78,8 @@ class ApiTouna {
     );
 
     try {
-      await request;
+      var p = await request;
+      return p.data;
     } on DioException catch (e) {
       error(e.response?.data.toString());
       throw Exception(e.response?.data ?? 'Unknown Error');
@@ -123,7 +124,7 @@ class ApiTouna {
     }
   }
 
-  static Future deletePerkara(int id) async {
+  static Future<int> deletePerkara(int id) async {
     final request = Dio().post(
       'https://cenkirpal.com/api/touna/delete-perkara',
       options: Options(headers: {
@@ -134,10 +135,11 @@ class ApiTouna {
     );
 
     try {
-      await request;
+      var p = await request;
+      return p.data;
     } on DioException catch (e) {
       error(e.response?.data.toString());
-      throw Exception(e.response?.data ?? 'Unknown Error');
+      return 0;
     }
   }
 
@@ -267,11 +269,6 @@ class ApiTouna {
       }
       return list;
     } on DioException catch (e) {
-      print(e.error);
-      print(e.message);
-      print(e.response?.statusMessage);
-      print(e.response?.statusCode.toString());
-      print(e.response?.data);
       throw Exception(e.response?.data ?? 'Unknown Error');
     }
   }

@@ -31,6 +31,7 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
   List<SidangModel> lists = [];
   Uint8List? bytes;
   Timer? timer;
+  bool detail = false;
 
   @override
   void initState() {
@@ -135,32 +136,32 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
 
     var noT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0 + 5));
-    noT.value = const exc.TextCellValue('No');
+    noT.value = exc.TextCellValue('No');
     noT.cellStyle = headerStyle;
 
     var terdakwaT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: 0 + 5));
-    terdakwaT.value = const exc.TextCellValue('Nama Terdakwa');
+    terdakwaT.value = exc.TextCellValue('Nama Terdakwa');
     terdakwaT.cellStyle = headerStyle;
 
     var agendaT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 0 + 5));
-    agendaT.value = const exc.TextCellValue('Agenda');
+    agendaT.value = exc.TextCellValue('Agenda');
     agendaT.cellStyle = headerStyle;
 
     var jpuT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: 0 + 5));
-    jpuT.value = const exc.TextCellValue('JPU');
+    jpuT.value = exc.TextCellValue('JPU');
     jpuT.cellStyle = headerStyle;
 
     var majelisT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: 0 + 5));
-    majelisT.value = const exc.TextCellValue('Majelis');
+    majelisT.value = exc.TextCellValue('Majelis');
     majelisT.cellStyle = headerStyle;
 
     var paniteraT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: 0 + 5));
-    paniteraT.value = const exc.TextCellValue('Panitera');
+    paniteraT.value = exc.TextCellValue('Panitera');
     paniteraT.cellStyle = headerStyle;
 
     for (var i = 0; i < lists.length; i++) {
@@ -285,6 +286,10 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
               onTap: () => cek(),
               child: const Text('Refresh'),
             ),
+            PopupMenuItem(
+              onTap: () => setState(() => detail = !detail),
+              child: const Text('Detail'),
+            ),
             if (!Platform.isAndroid)
               PopupMenuItem(
                 onTap: () => download(),
@@ -307,21 +312,10 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
                     PointerDeviceKind.touch,
                   }),
                   child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        rowTitle(),
-                        Expanded(
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.vertical,
-                            child: Screenshot(
-                              controller: controller,
-                              child: sidangWidget(context, false),
-                            ),
-                          ),
-                        ),
-                      ],
+                    scrollDirection: Axis.vertical,
+                    child: Screenshot(
+                      controller: controller,
+                      child: sidangWidget(context, false),
                     ),
                   ),
                 ),
@@ -400,70 +394,83 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
   sidangTile(BuildContext context, int i, SidangModel data, bool shot) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 40,
-            alignment: Alignment.center,
-            child: Text('${i + 1}'),
-          ),
-          SizedBox(
-            width: 300,
-            child: Text(
-              data.perkara!.terdakwa.replaceAll(';', '\n'),
-              overflow: TextOverflow.clip,
-            ),
-          ),
-          SizedBox(
-            width: 300,
-            child: Text(
-              data.agenda,
-            ),
-          ),
-          SizedBox(
-            width: 250,
-            child: Text(
-              data.perkara!.jpu.replaceAll(';', '\n'),
-              overflow: TextOverflow.clip,
-            ),
-          ),
-          SizedBox(
-            width: 250,
-            child: Text(
-              data.perkara!.majelis.replaceAll(';', '\n'),
-              overflow: TextOverflow.clip,
-            ),
-          ),
-          SizedBox(
-            width: 250,
-            child: Text(
-              data.perkara!.panitera,
-              overflow: TextOverflow.clip,
-            ),
-          ),
-          if (!shot)
-            SizedBox(
-              width: 50,
-              child: IconButton(
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return DetailPerkara(perkara: data.perkara!);
-                  }));
-                },
-                icon: const Icon(Icons.remove_red_eye),
+          if (detail)
+            Container(
+              padding: const EdgeInsets.only(left: 32),
+              child: SelectableText(
+                data.perkara!.noPerkara,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
-          if (!shot)
-            SizedBox(
-              width: 50,
-              child: IconButton(
-                onPressed: () async {
-                  await ApiTouna.ketSidang(data.id!, !(data.ket ?? false));
-                  await update(data.id!, i);
-                },
-                icon: const Icon(Icons.done),
+          Row(
+            children: [
+              Container(
+                width: 40,
+                alignment: Alignment.center,
+                child: Text('${i + 1}'),
               ),
-            ),
+              SizedBox(
+                width: 300,
+                child: SelectableText(
+                  data.perkara!.terdakwa.replaceAll(';', '\n'),
+                ),
+              ),
+              SizedBox(
+                width: 300,
+                child: Text(
+                  data.agenda,
+                ),
+              ),
+              SizedBox(
+                width: 250,
+                child: Text(
+                  data.perkara!.jpu.replaceAll(';', '\n'),
+                  overflow: TextOverflow.clip,
+                ),
+              ),
+              SizedBox(
+                width: 250,
+                child: Text(
+                  data.perkara!.majelis.replaceAll(';', '\n'),
+                  overflow: TextOverflow.clip,
+                ),
+              ),
+              SizedBox(
+                width: 250,
+                child: Text(
+                  data.perkara!.panitera,
+                  overflow: TextOverflow.clip,
+                ),
+              ),
+              if (!shot)
+                SizedBox(
+                  width: 50,
+                  child: IconButton(
+                    onPressed: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) {
+                        return DetailPerkara(perkara: data.perkara!);
+                      }));
+                    },
+                    icon: const Icon(Icons.remove_red_eye),
+                  ),
+                ),
+              if (!shot)
+                SizedBox(
+                  width: 50,
+                  child: IconButton(
+                    onPressed: () async {
+                      await ApiTouna.ketSidang(data.id!, !(data.ket ?? false));
+                      await update(data.id!, i);
+                    },
+                    icon: const Icon(Icons.done),
+                  ),
+                ),
+            ],
+          ),
         ],
       ),
     );

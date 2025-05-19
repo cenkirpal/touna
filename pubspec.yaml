@@ -57,7 +57,7 @@ dependencies:
   pdf: ^3.11.1
   printing: ^5.13.4
   flutter_inappwebview: ^6.1.5
-  flutter_thermal_printer: ^0.0.17
+  flutter_thermal_printer: ^1.0.1
   file_picker: ^8.1.4
   pdfrx: ^1.0.88
 

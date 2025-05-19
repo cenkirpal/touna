@@ -1,7 +1,10 @@
 PODS:
   - device_info_plus (0.0.1):
     - FlutterMacOS
-  - flutter_blue_plus (0.0.1):
+  - file_picker (0.0.1):
+    - FlutterMacOS
+  - flutter_blue_plus_darwin (0.0.2):
+    - Flutter
     - FlutterMacOS
   - flutter_inappwebview_macos (0.0.1):
     - FlutterMacOS
@@ -23,7 +26,8 @@ PODS:
 
 DEPENDENCIES:
   - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
-  - flutter_blue_plus (from `Flutter/ephemeral/.symlinks/plugins/flutter_blue_plus/macos`)
+  - file_picker (from `Flutter/ephemeral/.symlinks/plugins/file_picker/macos`)
+  - flutter_blue_plus_darwin (from `Flutter/ephemeral/.symlinks/plugins/flutter_blue_plus_darwin/darwin`)
   - flutter_inappwebview_macos (from `Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos`)
   - flutter_thermal_printer (from `Flutter/ephemeral/.symlinks/plugins/flutter_thermal_printer/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
@@ -39,8 +43,10 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   device_info_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos
-  flutter_blue_plus:
-    :path: Flutter/ephemeral/.symlinks/plugins/flutter_blue_plus/macos
+  file_picker:
+    :path: Flutter/ephemeral/.symlinks/plugins/file_picker/macos
+  flutter_blue_plus_darwin:
+    :path: Flutter/ephemeral/.symlinks/plugins/flutter_blue_plus_darwin/darwin
   flutter_inappwebview_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos
   flutter_thermal_printer:
@@ -58,7 +64,8 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   device_info_plus: ce1b7762849d3ec103d0e0517299f2db7ad60720
-  flutter_blue_plus: e2868679021f19d12a8c0c58a33f1df66ec7fa6a
+  file_picker: e716a70a9fe5fd9e09ebc922d7541464289443af
+  flutter_blue_plus_darwin: 904ed52825285a15f60e9d90312337a09f11a785
   flutter_inappwebview_macos: bdf207b8f4ebd58e86ae06cd96b147de99a67c9b
   flutter_thermal_printer: 89ad742652b32933223d893678c14cbd59579ed0
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
@@ -70,4 +77,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 236401fc2c932af29a9fcf0e97baeeb2d750d367
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2

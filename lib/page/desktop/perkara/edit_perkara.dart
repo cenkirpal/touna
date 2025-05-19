@@ -161,7 +161,7 @@ class EditPerkaraState extends State<EditPerkara> {
             );
 
             ApiTouna.editPerkara(widget.perkara.id!, pkr).then((v) {
-              if (context.mounted) Navigator.pop(context, true);
+              if (context.mounted) Navigator.pop(context, v);
             });
           },
           child: const Text('Simpan'),

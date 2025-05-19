@@ -94,37 +94,37 @@ class RekapSidangState extends State<RekapSidang> {
 
     var noT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0 + 5));
-    noT.value = const exc.TextCellValue('No');
+    noT.value = exc.TextCellValue('No');
     noT.cellStyle = headerStyle;
 
     var tglT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: 0 + 5));
-    tglT.value = const exc.TextCellValue('Tanggal');
+    tglT.value = exc.TextCellValue('Tanggal');
     tglT.cellStyle = headerStyle;
 
     var terdakwaT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 0 + 5));
-    terdakwaT.value = const exc.TextCellValue('Nama Terdakwa');
+    terdakwaT.value = exc.TextCellValue('Nama Terdakwa');
     terdakwaT.cellStyle = headerStyle;
 
     var agendaT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: 0 + 5));
-    agendaT.value = const exc.TextCellValue('Agenda');
+    agendaT.value = exc.TextCellValue('Agenda');
     agendaT.cellStyle = headerStyle;
 
     var jpuT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: 0 + 5));
-    jpuT.value = const exc.TextCellValue('JPU');
+    jpuT.value = exc.TextCellValue('JPU');
     jpuT.cellStyle = headerStyle;
 
     var majelisT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: 0 + 5));
-    majelisT.value = const exc.TextCellValue('Majelis');
+    majelisT.value = exc.TextCellValue('Majelis');
     majelisT.cellStyle = headerStyle;
 
     var paniteraT = sheet
         .cell(exc.CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: 0 + 5));
-    paniteraT.value = const exc.TextCellValue('Panitera');
+    paniteraT.value = exc.TextCellValue('Panitera');
     paniteraT.cellStyle = headerStyle;
 
     for (var i = 0; i < lists.length; i++) {

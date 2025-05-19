@@ -11,6 +11,7 @@ import 'package:touna/page/desktop/perkara/widget/add_file.dart';
 import 'package:touna/page/desktop/sidang/add_sidang.dart';
 import 'package:touna/page/desktop/sidang/edit_sidang.dart';
 import 'package:touna/util/date.dart';
+import 'package:touna/util/snackbar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DetailPerkara extends StatefulWidget {
@@ -61,22 +62,43 @@ class DetailPerkaraState extends State<DetailPerkara> {
         builder: (context) {
           return EditPerkara(perkara: perkara);
         });
+    if (!mounted) return;
+    try {
+      setState(() => perkara = PerkaraModel.fromJson(p));
+    } catch (e) {
+      showSnackbar(context, e.toString());
+    }
     if (p == true) reload();
+  }
+
+  setPutusan(int id, String no) async {
+    String p = await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content: TextFormField(
+              autofocus: true,
+              onFieldSubmitted: (value) async {
+                if (context.mounted) Navigator.pop(context, value);
+              },
+            ),
+          );
+        });
+    await ApiTouna.putus(id, p);
+    var pkr = await ApiTouna.findPerkara(no);
+    if (mounted) setState(() => perkara = pkr);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: perkara.putusan == null ? null : Colors.pink[300],
         title: SelectableText(
           perkara.noPerkara,
           style: TextStyle(fontSize: Platform.isAndroid ? 14 : 18),
         ),
         actions: [
-          IconButton(
-            onPressed: () => reload(),
-            icon: const Icon(Icons.refresh),
-          ),
           IconButton(
             onPressed: () async {
               var p = await showDialog(
@@ -88,10 +110,22 @@ class DetailPerkaraState extends State<DetailPerkara> {
             },
             icon: const Icon(Icons.add),
           ),
-          IconButton(
-            onPressed: () => editPerkara(),
-            icon: const Icon(Icons.edit),
-          ),
+          PopupMenuButton(itemBuilder: (context) {
+            return [
+              PopupMenuItem(
+                onTap: () => reload(),
+                child: const Text('Refresh'),
+              ),
+              PopupMenuItem(
+                onTap: () => editPerkara(),
+                child: const Text('Edit'),
+              ),
+              PopupMenuItem(
+                onTap: () => setPutusan(perkara.id!, perkara.noPerkara),
+                child: const Text('Putusan'),
+              ),
+            ];
+          }),
         ],
       ),
       drawer: Platform.isAndroid ? drawer() : null,

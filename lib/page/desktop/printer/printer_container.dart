@@ -217,13 +217,18 @@ class ShowPrinterState extends State<ShowPrinter> {
 
   startScan() async {
     try {
-      Future.delayed(const Duration(seconds: 3), () => stopScan());
-      await FlutterThermalPrinter.instance.startScan();
+      stream?.cancel();
+      await FlutterThermalPrinter.instance.getPrinters(
+        connectionTypes: [ConnectionType.BLE],
+      );
+      // Future.delayed(const Duration(seconds: 5), () => stopScan());
+
       stream = FlutterThermalPrinter.instance.devicesStream.listen((event) {
         // if (!mounted) return;
+        // print(event.map((e) => e.name));
 
         setState(() {
-          listPrinter = event.map((e) => Printer.fromJson(e.toJson())).toList();
+          listPrinter = event;
           listPrinter.removeWhere(
             (element) => element.name == null || element.name!.isEmpty,
           );
