@@ -24,6 +24,7 @@ class DataPerkaraState extends State<DataPerkara> {
   AppState appState = AppState.done;
   final _keyword = TextEditingController();
   List<PerkaraModel> lists = [];
+  List<PerkaraModel> baseLists = [];
   String error = '';
 
   @override
@@ -36,18 +37,30 @@ class DataPerkaraState extends State<DataPerkara> {
     setState(() {
       appState = AppState.loading;
       lists = [];
+      baseLists = [];
     });
     ResponseApi d = await ApiTouna.getPerkara(keyword: _keyword.text);
     if (!mounted) return;
-    setState(() {
-      if (d.error) {
-        error = d.msg ?? 'Unknown Error';
-        appState = AppState.error;
-      } else {
-        lists = d.result == null ? [] : d.result as List<PerkaraModel>;
+
+    if (d.error) setState(() => appState = AppState.error);
+    if (d.result == null) {
+      setState(() {
         appState = AppState.done;
-      }
-    });
+      });
+    } else {
+      var data = d.result as List<PerkaraModel>;
+      var putus = data.where((x) => x.putusan != null).toList();
+      var jln = data.where((x) => x.putusan == null).toList();
+      putus.sort((a, b) => b.noPerkara.compareTo(a.noPerkara));
+      jln.sort((a, b) => b.noPerkara.compareTo(a.noPerkara));
+      jln.addAll(putus);
+
+      setState(() {
+        lists = jln;
+        baseLists = jln;
+        appState = AppState.done;
+      });
+    }
   }
 
   insert() async {
@@ -58,6 +71,27 @@ class DataPerkaraState extends State<DataPerkara> {
           return const AddPerkara();
         });
     fetch();
+  }
+
+  search() {
+    var s = baseLists.where(
+      (x) => x.terdakwa.toLowerCase().contains(_keyword.text.toLowerCase()),
+    );
+    setState(() => lists = s.toList());
+  }
+
+  lewatSidang() {
+    var putus = lists.where((e) => e.putusan == null);
+    List<PerkaraModel> a = [];
+    for (var item in putus) {
+      var t = item.sidang?.last.date;
+      if (t != null) {
+        var tm = DateTime.parse(t);
+        var div = tm.difference(DateTime.now());
+        if (div.isNegative) a.add(item);
+      }
+    }
+    setState(() => lists = a);
   }
 
   setPutusan(int id, String no, int i) async {
@@ -287,7 +321,7 @@ class DataPerkaraState extends State<DataPerkara> {
               suffixIcon: IconButton(
                 onPressed: () {
                   _keyword.clear();
-                  fetch();
+                  setState(() => lists = baseLists);
                 },
                 iconSize: 20,
                 color: Colors.pink,
@@ -295,7 +329,7 @@ class DataPerkaraState extends State<DataPerkara> {
               ),
             ),
             onFieldSubmitted: (value) {
-              if (_keyword.text.isNotEmpty) fetch();
+              if (_keyword.text.isNotEmpty) search();
             },
           ),
         ),
@@ -308,6 +342,10 @@ class DataPerkaraState extends State<DataPerkara> {
             PopupMenuItem(
               onTap: () => fetch(),
               child: const Text('Refresh Data'),
+            ),
+            PopupMenuItem(
+              onTap: () => lewatSidang(),
+              child: const Text('Lewat Sidang'),
             ),
             if (!Platform.isAndroid)
               PopupMenuItem(
@@ -445,9 +483,11 @@ class DataPerkaraState extends State<DataPerkara> {
                                         ),
                                         TextButton(
                                           onPressed: () async {
-                                            await ApiTouna.deletePerkara(
-                                                lists[i].id!);
-                                            fetch();
+                                            lists.removeAt(i);
+                                            setState(() {});
+                                            // await ApiTouna.deletePerkara(
+                                            //     lists[i].id!);
+                                            // fetch();
                                             if (context.mounted) {
                                               Navigator.pop(context);
                                             }
@@ -457,7 +497,7 @@ class DataPerkaraState extends State<DataPerkara> {
                                       ],
                                     );
                                   });
-                              fetch();
+                              // fetch();
                             });
                           },
                           child: const Text('Delete'),

@@ -267,11 +267,6 @@ class ApiTouna {
       }
       return list;
     } on DioException catch (e) {
-      print(e.error);
-      print(e.message);
-      print(e.response?.statusMessage);
-      print(e.response?.statusCode.toString());
-      print(e.response?.data);
       throw Exception(e.response?.data ?? 'Unknown Error');
     }
   }

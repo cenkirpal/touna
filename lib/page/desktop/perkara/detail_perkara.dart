@@ -7,11 +7,9 @@ import 'package:touna/main.dart';
 import 'package:touna/model/perkara_model.dart';
 import 'package:touna/model/sidang_model.dart';
 import 'package:touna/page/desktop/perkara/edit_perkara.dart';
-import 'package:touna/page/desktop/perkara/widget/add_file.dart';
 import 'package:touna/page/desktop/sidang/add_sidang.dart';
 import 'package:touna/page/desktop/sidang/edit_sidang.dart';
 import 'package:touna/util/date.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class DetailPerkara extends StatefulWidget {
   const DetailPerkara({super.key, required this.perkara});
@@ -45,16 +43,6 @@ class DetailPerkaraState extends State<DetailPerkara> {
     });
   }
 
-  addFiles() async {
-    var p = await showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return AddFile(id: perkara.id!);
-        });
-    if (p == true) reload();
-  }
-
   editPerkara() async {
     var p = await showDialog(
         context: context,
@@ -64,19 +52,34 @@ class DetailPerkaraState extends State<DetailPerkara> {
     if (p == true) reload();
   }
 
+  setPutusan() async {
+    String p = await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content: TextFormField(
+              autofocus: true,
+              onFieldSubmitted: (value) async {
+                if (context.mounted) Navigator.pop(context, value);
+              },
+            ),
+          );
+        });
+    await ApiTouna.putus(perkara.id!, p);
+    var pkr = await ApiTouna.findPerkara(perkara.noPerkara);
+    if (mounted) setState(() => perkara = pkr);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: perkara.putusan == null ? null : Colors.pink[300],
         title: SelectableText(
           perkara.noPerkara,
           style: TextStyle(fontSize: Platform.isAndroid ? 14 : 18),
         ),
         actions: [
-          IconButton(
-            onPressed: () => reload(),
-            icon: const Icon(Icons.refresh),
-          ),
           IconButton(
             onPressed: () async {
               var p = await showDialog(
@@ -88,10 +91,22 @@ class DetailPerkaraState extends State<DetailPerkara> {
             },
             icon: const Icon(Icons.add),
           ),
-          IconButton(
-            onPressed: () => editPerkara(),
-            icon: const Icon(Icons.edit),
-          ),
+          PopupMenuButton(itemBuilder: (context) {
+            return [
+              PopupMenuItem(
+                onTap: () => reload(),
+                child: const Text('refresh'),
+              ),
+              PopupMenuItem(
+                onTap: () => editPerkara(),
+                child: const Text('Edit'),
+              ),
+              PopupMenuItem(
+                onTap: () => setPutusan(),
+                child: const Text('Putusan'),
+              ),
+            ];
+          }),
         ],
       ),
       drawer: Platform.isAndroid ? drawer() : null,
@@ -127,70 +142,50 @@ class DetailPerkaraState extends State<DetailPerkara> {
     return SizedBox(
       width: 300,
       height: double.infinity,
-      child: Stack(
-        children: [
-          SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Terdakwa : '),
-                Text(
-                  perkara.terdakwa.replaceAll(';', '\n'),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
-                const Divider(endIndent: 100),
-                const Text('JPU : '),
-                Text(
-                  perkara.jpu.replaceAll(';', '\n'),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
-                const Divider(endIndent: 100),
-                const Text('Majelis : '),
-                Text(
-                  perkara.majelis.replaceAll(';', '\n'),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
-                const Divider(endIndent: 100),
-                const Text('Panitera : '),
-                Text(
-                  perkara.panitera.replaceAll(';', '\n'),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
-                const Divider(),
-                ...listFile()
-              ],
-            ),
-          ),
-          Positioned(
-            bottom: 8,
-            right: 8,
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.green[300],
-                borderRadius: BorderRadius.circular(50),
-              ),
-              child: IconButton(
-                onPressed: () => addFiles(),
-                icon: const Icon(Icons.add),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Terdakwa : '),
+            Text(
+              perkara.terdakwa.replaceAll(';', '\n'),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
               ),
             ),
-          ),
-        ],
+            const Divider(endIndent: 100),
+            const Text('JPU : '),
+            Text(
+              perkara.jpu.replaceAll(';', '\n'),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
+            const Divider(endIndent: 100),
+            const Text('Majelis : '),
+            Text(
+              perkara.majelis.replaceAll(';', '\n'),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
+            const Divider(endIndent: 100),
+            const Text('Panitera : '),
+            Text(
+              perkara.panitera.replaceAll(';', '\n'),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
+            const Divider(),
+            ...listFile()
+          ],
+        ),
       ),
     );
   }
@@ -289,42 +284,21 @@ class DetailPerkaraState extends State<DetailPerkara> {
 
   List<Widget> listFile() {
     return [
-      // if (perkara.files != null)
-      Container(
-        margin: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-            color: Colors.green[300], borderRadius: BorderRadius.circular(8)),
-        child: TextButton(
-          onPressed: () {
-            showDialog(
-                context: context,
-                builder: (context) {
-                  return LoadPDF(path: perkara.files!.putusan!);
-                });
-          },
-          child: const Text(
-            'File Putusan',
-            style: TextStyle(color: Colors.black54),
+      if (perkara.putusan != null)
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.pink[300],
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            perkara.putusan!,
+            style: const TextStyle(
+              color: Colors.black54,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
-      ),
-      // else
-      Container(
-        margin: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-            color: Colors.green[300], borderRadius: BorderRadius.circular(8)),
-        child: TextButton(
-          onPressed: () {
-            var uri =
-                'https://drive.google.com/drive/folders/1-raXAxYYar77MeTkM9ZNdNiVubyTqyhe?usp=drive_link';
-            launchUrl(Uri.parse(uri));
-          },
-          child: const Text(
-            'File Uri Putusan',
-            style: TextStyle(color: Colors.black54),
-          ),
-        ),
-      ),
     ];
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:excel/excel.dart' as exc;
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
@@ -281,32 +282,43 @@ class RekapSidangState extends State<RekapSidang> {
   }
 
   sidangTile(int i, SidangModel data) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                alignment: Alignment.center,
-                child: Text('${i + 1}'),
-              ),
-              SizedBox(
-                width: 250,
-                child: Text(lists[i].perkara!.terdakwa.replaceAll(';', '\n')),
-              ),
-              SizedBox(
-                width: 200,
-                child: Text(lists[i].agenda),
-              ),
-              Container(width: 16),
-              SizedBox(
-                width: 150,
-                child: Text(DateTime.parse(lists[i].date).fullday),
-              ),
-            ],
+    return ScrollConfiguration(
+      behavior: const MaterialScrollBehavior().copyWith(dragDevices: {
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.touch,
+        PointerDeviceKind.trackpad,
+      }),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  alignment: Alignment.center,
+                  child: Text('${i + 1}'),
+                ),
+                SizedBox(
+                  width: 250,
+                  child: Text(lists[i].perkara!.noPerkara),
+                ),
+                SizedBox(
+                  width: 250,
+                  child: Text(lists[i].perkara!.terdakwa.replaceAll(';', '\n')),
+                ),
+                SizedBox(
+                  width: 200,
+                  child: Text(lists[i].agenda),
+                ),
+                Container(width: 16),
+                SizedBox(
+                  width: 150,
+                  child: Text(DateTime.parse(lists[i].date).fullday),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -42,10 +42,30 @@ class PrinterDB {
     return data == null
         ? null
         : NotaModel.fromJson(data.value as Map<String, dynamic>);
-    // if (data == null) {
+  }
 
-    // } else {
-    //   return NotaModel.fromJson(data.value as Map<String, dynamic>);
-    // }
+  static Future<List<RecordSnapshot>> getSpbu() async {
+    final db = await init();
+    final store = intMapStoreFactory.store('spbu');
+    final data = await store.query().getSnapshots(db);
+    if (data.isEmpty) {
+      store.add(db, {'spbu': 'Bailo', 'ket': ''});
+      return await store.query().getSnapshots(db);
+    } else {
+      return data;
+    }
+  }
+
+  static Future editSpbu(int key, String val) async {
+    final db = await init();
+    final store = intMapStoreFactory.store('spbu');
+    await store.update(db, {'ket': val},
+        finder: Finder(filter: Filter.byKey(key)));
+  }
+
+  static Future addSpbu(String val) async {
+    final db = await init();
+    final store = intMapStoreFactory.store('spbu');
+    await store.add(db, {'spbu': val, 'ket': ''});
   }
 }

@@ -48,7 +48,7 @@ dependencies:
   google_fonts: ^4.0.4
   excel: ^4.0.3
   flutter_riverpod: ^2.6.1
-  print_bluetooth_thermal: ^1.1.0
+  print_bluetooth_thermal: ^1.1.4
   esc_pos_utils_plus: ^2.0.3
   image: ^4.2.0
   screenshot: ^3.0.0
@@ -60,6 +60,7 @@ dependencies:
   flutter_thermal_printer: ^0.0.17
   file_picker: ^8.1.4
   pdfrx: ^1.0.88
+  docx_template: ^0.4.0
 
 dev_dependencies:
   flutter_test:

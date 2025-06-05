@@ -12,7 +12,6 @@ import 'package:screenshot/screenshot.dart';
 import 'package:touna/api/api.dart';
 import 'package:touna/main.dart';
 import 'package:touna/model/sidang_model.dart';
-import 'package:touna/page/desktop/laporan/p38_page.dart';
 import 'package:touna/page/desktop/perkara/detail_perkara.dart';
 import 'package:touna/util/date.dart';
 import 'package:touna/util/platform.dart';
@@ -31,11 +30,11 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
   List<SidangModel> lists = [];
   Uint8List? bytes;
   Timer? timer;
+  bool detail = false;
 
   @override
   void initState() {
     super.initState();
-    // autoRefresh();
     cek();
   }
 
@@ -274,7 +273,6 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
-        // if (!Platform.isAndroid)
         IconButton(
           onPressed: () => capture(context),
           icon: const Icon(Icons.photo),
@@ -284,6 +282,10 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
             PopupMenuItem(
               onTap: () => cek(),
               child: const Text('Refresh'),
+            ),
+            PopupMenuItem(
+              onTap: () => setState(() => detail = !detail),
+              child: const Text('Detail'),
             ),
             if (!Platform.isAndroid)
               PopupMenuItem(
@@ -307,38 +309,27 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
                     PointerDeviceKind.touch,
                   }),
                   child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        rowTitle(),
-                        Expanded(
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.vertical,
-                            child: Screenshot(
-                              controller: controller,
-                              child: sidangWidget(context, false),
-                            ),
-                          ),
-                        ),
-                      ],
+                    scrollDirection: Axis.vertical,
+                    child: Screenshot(
+                      controller: controller,
+                      child: sidangWidget(context, false),
                     ),
                   ),
                 ),
-      floating: Platform.isAndroid
-          ? null
-          : lists.isEmpty
-              ? null
-              : FloatingActionButton(
-                  onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) {
-                      return P38Page(lists: lists, date: date);
-                    }));
-                  },
-                  heroTag: 'PDF',
-                  child: const Icon(Icons.picture_as_pdf),
-                ),
+      // floating: Platform.isAndroid
+      //     ? null
+      //     : lists.isEmpty
+      //         ? null
+      //         : FloatingActionButton(
+      //             onPressed: () {
+      //               Navigator.push(context,
+      //                   MaterialPageRoute(builder: (context) {
+      //                 return P38Page(lists: lists, date: date);
+      //               }));
+      //             },
+      //             heroTag: 'PDF',
+      //             child: const Icon(Icons.picture_as_pdf),
+      //           ),
     );
   }
 
@@ -400,70 +391,87 @@ class JadwalSidangState extends ConsumerState<JadwalSidang> {
   sidangTile(BuildContext context, int i, SidangModel data, bool shot) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 40,
-            alignment: Alignment.center,
-            child: Text('${i + 1}'),
-          ),
-          SizedBox(
-            width: 300,
-            child: Text(
-              data.perkara!.terdakwa.replaceAll(';', '\n'),
-              overflow: TextOverflow.clip,
-            ),
-          ),
-          SizedBox(
-            width: 300,
-            child: Text(
-              data.agenda,
-            ),
-          ),
-          SizedBox(
-            width: 250,
-            child: Text(
-              data.perkara!.jpu.replaceAll(';', '\n'),
-              overflow: TextOverflow.clip,
-            ),
-          ),
-          SizedBox(
-            width: 250,
-            child: Text(
-              data.perkara!.majelis.replaceAll(';', '\n'),
-              overflow: TextOverflow.clip,
-            ),
-          ),
-          SizedBox(
-            width: 250,
-            child: Text(
-              data.perkara!.panitera,
-              overflow: TextOverflow.clip,
-            ),
-          ),
-          if (!shot)
-            SizedBox(
-              width: 50,
-              child: IconButton(
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return DetailPerkara(perkara: data.perkara!);
-                  }));
-                },
-                icon: const Icon(Icons.remove_red_eye),
+          if (detail)
+            Padding(
+              padding: const EdgeInsets.only(left: 24),
+              child: Text(
+                data.perkara!.noPerkara,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          if (!shot)
-            SizedBox(
-              width: 50,
-              child: IconButton(
-                onPressed: () async {
-                  await ApiTouna.ketSidang(data.id!, !(data.ket ?? false));
-                  await update(data.id!, i);
-                },
-                icon: const Icon(Icons.done),
+          Row(
+            children: [
+              Container(
+                width: 40,
+                alignment: Alignment.center,
+                child: Text('${i + 1}'),
               ),
-            ),
+              SizedBox(
+                width: 300,
+                child: Text(
+                  data.perkara!.terdakwa.replaceAll(';', '\n'),
+                  overflow: TextOverflow.clip,
+                ),
+              ),
+              SizedBox(
+                width: 300,
+                child: Text(
+                  data.agenda,
+                ),
+              ),
+              SizedBox(
+                width: 250,
+                child: Text(
+                  data.perkara!.jpu.replaceAll(';', '\n'),
+                  overflow: TextOverflow.clip,
+                ),
+              ),
+              SizedBox(
+                width: 250,
+                child: Text(
+                  data.perkara!.majelis.replaceAll(';', '\n'),
+                  overflow: TextOverflow.clip,
+                ),
+              ),
+              SizedBox(
+                width: 250,
+                child: Text(
+                  data.perkara!.panitera,
+                  overflow: TextOverflow.clip,
+                ),
+              ),
+              if (!shot)
+                SizedBox(
+                  width: 50,
+                  child: IconButton(
+                    onPressed: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) {
+                        return DetailPerkara(perkara: data.perkara!);
+                      }));
+                    },
+                    icon: const Icon(Icons.remove_red_eye),
+                  ),
+                ),
+              if (!shot)
+                SizedBox(
+                  width: 50,
+                  child: IconButton(
+                    onPressed: () async {
+                      await ApiTouna.ketSidang(data.id!, !(data.ket ?? false));
+                      await update(data.id!, i);
+                    },
+                    icon: const Icon(Icons.done),
+                  ),
+                ),
+            ],
+          ),
         ],
       ),
     );

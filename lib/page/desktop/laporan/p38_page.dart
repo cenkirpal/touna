@@ -1,11 +1,17 @@
+import 'dart:io';
+
+import 'package:docx_template/docx_template.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:touna/main.dart';
 import 'package:touna/model/p38_model.dart';
 import 'package:touna/model/sidang_model.dart';
 import 'package:touna/page/desktop/laporan/edit_surat.dart';
 import 'package:touna/util/date.dart';
-import 'package:touna/util/pdf_sidang.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class P38Page extends StatefulWidget {
   const P38Page({super.key, required this.lists, required this.date});
@@ -45,23 +51,63 @@ class P38PageState extends State<P38Page> with WidgetsBindingObserver {
   }
 
   capture(BuildContext context, P38Model dataSurat) async {
-    SidangPdf().generate(context, widget.lists, nama, dataSurat);
+    try {
+      var tmp = await rootBundle.load('assets/template.docx');
+      var bytes = tmp.buffer.asUint8List();
+      var docx = await DocxTemplate.fromBytes(bytes);
+      // final b = listBold.iterator;
+      // for (var n in listNormal) {
+      //   b.moveNext();
+      //   final contentList = <Content>[];
+      //   final c = PlainContent("value")
+      //     ..add(TextContent("normal", n))
+      //     ..add(TextContent("bold", b.current));
+      //   contentList.add(c);
+      // }
+      Content c = Content();
+      c
+        ..add(TextContent("docname", "Simple docname"))
+        ..add(TextContent("passport", "Passport NE0323 4456673"));
+      // ..add(PlainContent("tglSurat", "Dodument Name"));
 
-    if (context.mounted) {
-      //   var byte = await controller.captureFromLongWidget(
-      //     pixelRatio: 2,
-      //     InheritedTheme.captureAll(
-      //       context,
-      //       PrintPDF().printPdf(context, widget.lists, nama, dataSurat),
-      //     ),
-      //   );
-      // await SidangPdf().fromPDF(byte, widget.date);
+      final d = await docx.generate(c);
+      // final dbBytes = await rootBundle.load('assets/generated.docx');
 
-      //   var dir = await getApplicationDocumentsDirectory();
-      //   var des = Directory(join(dir.path, 'sidang'));
-      //   des.create(recursive: true);
-      //   await launchUrl(Uri.file(des.path));
+      var dir = await getApplicationDocumentsDirectory();
+      var des = Directory(join(dir.path, 'sidang'));
+      des.create(recursive: true);
+      var name = '${des.path}/p38.docx';
+      if (d != null) {
+        await File(name).writeAsBytes(d);
+        await launchUrl(Uri.file(des.path));
+      } else {
+        print('d is null');
+      }
+    } catch (e) {
+      print(e);
+      print('errrorr');
     }
+
+    // final of = await writeToFile(dbBytes);
+
+    /// -----
+    // SidangPdf().generate(context, widget.lists, nama, dataSurat);
+
+    // if (context.mounted) {
+    //   var byte = await controller.captureFromLongWidget(
+    //     pixelRatio: 2,
+    //     InheritedTheme.captureAll(
+    //       context,
+    //       PrintPDF().printPdf(context, widget.lists, nama, dataSurat),
+    //     ),
+    //   );
+    // await SidangPdf().fromPDF(byte, widget.date);
+
+    //   var dir = await getApplicationDocumentsDirectory();
+    //   var des = Directory(join(dir.path, 'sidang'));
+    //   des.create(recursive: true);
+    //   await launchUrl(Uri.file(des.path));
+    // }
   }
 
   @override

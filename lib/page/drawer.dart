@@ -78,14 +78,14 @@ class DrawerState extends ConsumerState<DrawerWidget> {
                     title: const Text('Rekap Sidang'),
                   ),
                 ),
-                if (show)
-                  Card(
-                    color: activeColor('Open Web'),
-                    child: ListTile(
-                      onTap: () => goRoute('Open Web', draw),
-                      title: const Text('Open Web'),
-                    ),
-                  ),
+                // if (show)
+                // Card(
+                //   color: activeColor('Open Web'),
+                //   child: ListTile(
+                //     onTap: () => goRoute('Open Web', draw),
+                //     title: const Text('Open Web'),
+                //   ),
+                // ),
               ],
             ),
           ),
